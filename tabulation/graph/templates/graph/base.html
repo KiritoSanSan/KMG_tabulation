@@ -1,0 +1,31 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+	<link rel="stylesheet" href="{% static 'graph\css\main.css' %}">
+</head>
+<body>
+    
+    <a href="/admin/graph/graph/">
+        <button> График </button>
+    </a>
+    <a href = "#">
+        <button>Плановый табель</button>
+    </a>
+    <a href="{%url 'graph:home'%}">
+        <button class="home_button">Назад</button>
+    </a>
+    <h3>{{tabel.subdivision}} {{tabel.reservoir}} {{tabel.year}}</h3>
+    {% if request.user.is_authenticated %}
+        <p class="user_log">{{request.user.first_name}}</p>
+        <a href="{%url 'users:logout'%}">|Выйти</a>
+    {% else %}
+        <p class="user_log">Не вошли в Аккаунт</p>
+        <a href='{%url "users:login"%}'><p>|Войти</p></a>
+    {% endif %}
+    {% block content %}
+    {% endblock content %}
+</body>
+</html>
