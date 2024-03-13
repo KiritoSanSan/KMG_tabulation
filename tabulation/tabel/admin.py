@@ -16,7 +16,11 @@ class EmployeesInline(admin.TabularInline):
     
     #remove the button 'add employee'
     def has_add_permission(self, request, obj=None):
-            return False
+        return False
+    
+    #remove the button 'remove employee'
+    def has_delete_permission(self, request, obj=None):
+        return False
     
 
 @admin.register(Tabel)

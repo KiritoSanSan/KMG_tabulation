@@ -36,7 +36,8 @@ class GraphAdmin(admin.ModelAdmin):
                     'subdivision',
                     'month',
                     'year',
-                    'view_graph_link'
+                    'view_graph_link',
+                    # 'view_tabel_link',
                     )
     list_filter = ('reservoir',
                    'year',
@@ -51,6 +52,22 @@ class GraphAdmin(admin.ModelAdmin):
          )
          return format_html('<a href={}>{}',url,f"График {graph}" )
     view_graph_link.short_description = 'Графики'
+
+    # def view_tabel_link(self, obj):
+    #     filters = {
+    #         'reservoir': obj.reservoir,
+    #         'subdivision': obj.subdivision,
+    #         'month': obj.month,
+    #         'year': obj.year
+    #     }
+    #     url = (
+    #         reverse("tabel:filtered_tabel_graph")
+    #         + "?"
+    #         + urlencode(filters)
+    #     )
+    #     return format_html('<a href={}>{}', url, f"Табель {obj.pk}")
+    # view_tabel_link.short_description = 'Табели'
+         
 
 
 

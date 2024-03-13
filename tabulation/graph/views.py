@@ -3,6 +3,8 @@ from django.shortcuts import redirect, render
 from .models import *
 from tabel.models import Tabel
 from .forms import *
+from django.core.exceptions import ObjectDoesNotExist
+
 # Create your views here.
 
 month_names_ru = {
@@ -78,29 +80,30 @@ def graph_admin(request):
     if request.method == 'POST':
         # Check if the submitted form contains the key 'soglasovat'
         if 'soglasovat' in request.POST:
-            print('log')
             graph_pk = request.POST.get('graph_pk')
             graph_inst = Graph.objects.get(pk=graph_pk)
             # Create a Tabel instance with data from the chosen graph
-            employees_graph = graph.employees.all()
-            if not Tabel.objects.filter(
-                reservoir=graph_inst.reservoir,
-                subdivision=graph_inst.subdivision,
-                month=graph_inst.month,
-                year=graph_inst.year,
-                employees=employees_graph
-            ).exists():
-                # If Tabel object doesn't exist, create it
-                Tabel.objects.create(
+            employees_graph = graph_inst.employees.all()
+            try:
+                # Attempt to retrieve an existing Tabel instance
+                tabel_instance = Tabel.objects.get(
                     reservoir=graph_inst.reservoir,
                     subdivision=graph_inst.subdivision,
                     month=graph_inst.month,
                     year=graph_inst.year,
-                    employees=employees_graph
                 )
-                print('ne bilo, no sozdal')
-            print('poluchilos')
-        print('ne poluchilos')
+            except ObjectDoesNotExist:
+                # If Tabel object doesn't exist, create it
+                tabel_instance = Tabel.objects.create(
+                    reservoir=graph_inst.reservoir,
+                    subdivision=graph_inst.subdivision,
+                    month=graph_inst.month,
+                    year=graph_inst.year,
+                )
+                # Set the many-to-many relationship using the .set() method
+                tabel_instance.employees.set(employees_graph)
+                return redirect('admin:tabel_tabel_changelist')
+
 
 
     graph_pk = request.session['chosen_pk']  

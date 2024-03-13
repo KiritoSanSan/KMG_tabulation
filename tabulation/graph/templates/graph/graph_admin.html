@@ -33,7 +33,6 @@
                   <td>{{employee.tariff_category}}</td>
                   {% for day in days %}
                     {% for data in time_tracking %}
-
                       {% if data.date.year == year %}
                         {% if data.date.month == month %}
                           {% if data.date.day == day %}
@@ -62,8 +61,9 @@
           </tbody>
         </table>
     
-        <form method="post" action="/admin/tabel/tabel/">
+        <form method="post" action="/graph-admin/?graph_pk={{graph_pk}}" name='soglasovat'>
             {% csrf_token %}
+            <input type="hidden" name="graph_pk" value="{{ graph_pk }}">
             <button type="submit" name="soglasovat">Согласовать</button>
         </form>
         <a href='/admin/graph/graph'><button>Назад</button></a>
