@@ -1,4 +1,5 @@
 {% extends "admin/base_site.html" %}
+<div id="site-name"><a href="{% url 'admin:index' %}">{{ site_header|default:_('Админ Панель') }}</a></div>
 {%block content%}
         <table>
             <thead>
@@ -66,4 +67,7 @@
             <button type="submit" name="soglasovat">Согласовать</button>
         </form>
         <a href='/admin/graph/graph'><button>Назад</button></a>
+        <a href="{% url 'graph:graph_admin_update' %}">
+            <button type="submit" class="edit">Редактировать</button>
+          </a>
 {%endblock%}

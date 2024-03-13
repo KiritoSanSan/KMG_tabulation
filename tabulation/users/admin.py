@@ -46,7 +46,7 @@ class AccountAdmin(UserAdmin):
 
 
 admin.site.site_header = 'Админ Панель'
-# admin.site.site_title = 'title'
+admin.site.site_title = 'title'
 admin.site.index_title = 'Табуляция Сайта'
 
 

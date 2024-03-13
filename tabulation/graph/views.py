@@ -1,5 +1,5 @@
 import calendar
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from .models import *
 from tabel.models import Tabel
 from .forms import *
@@ -106,8 +106,6 @@ def graph_admin(request):
     graph_pk = request.session['chosen_pk']  
     graph = Graph.objects.get(pk=graph_pk)
     employees = graph.employees.all()
-    for employee in employees:
-        print(employee.name)
     attendance = Attendance.objects.filter(type='дни явок')
     no_attendance = Attendance.objects.filter(type='дни неявок')
     tracking = TimeTracking.objects.all()
@@ -154,7 +152,7 @@ def graph_admin(request):
                 else:
                     directory[f'{employee.name}']['weekends'] += 1
 
-    #calculation attendace end
+    #calculation attendance end
 
     context = {
         'graph_pk':graph_pk,
@@ -170,4 +168,76 @@ def graph_admin(request):
         'calculations': directory,
     }
     return render(request,'graph/graph_admin.html',context)
+
+def graph_admin_update(request):
+    graph_pk = request.session['chosen_pk']
+    graph = Graph.objects.get(pk=graph_pk)
+    employees = graph.employees.all()
+    attendance_full = Attendance.objects.all()
+    attendance = Attendance.objects.filter(type="дни явок")
+    no_attendance = Attendance.objects.filter(type="дни неявок")
+    tracking = TimeTracking.objects.all()
+    month = graph.month
+    year = graph.year
+    if request.method == 'POST':
+        for key, value in request.POST.items():
+            if key.startswith('worked_hours_'):
+                time_tracking_id = key.split('_')[2]
+                time_tracking_instance = TimeTracking.objects.get(pk=time_tracking_id)
+                time_tracking_instance.worked_hours = value
+                time_tracking_instance.save()
+        return redirect(reverse('graph:graph_admin') +f'?graph_pk={graph_pk}')
+    
+    name_month_en = calendar.month_name[int(month)]
+    name_month_ru = month_names_ru[name_month_en]
+    
+    dates = tracking.values_list('date',flat=True).distinct()
+    for date in dates:
+        month = date.month
+        year = date.year
+    num_days = calendar.monthrange(int(year),int(month))[1]
+    days = range(1, num_days + 1)
+    
+    # tracking = TimeTracking.objects.filter(employee_id__in=employees.values_list('tabel_number', flat=True))
+    # tracking = tracking.filter(date__month=month)
+    # tabel_numbers = tracking.values_list('employee_id', flat=True)
+    # employees = employees.filter(tabel_number__in=tabel_numbers)
+    directory = {}
+    for employee in employees:
+        pairs = []
+        pairs.append(('worked_days', 0))
+        for att in attendance_full:
+            pairs.append((f'{att}', 0))
+        pairs.append(('days_in_month', len(days)))
+        pairs.append(('total_work_hours', 0))
+        directory[f'{employee.name}'] = dict(pairs)
+
+    for employee in employees:
+        for work in tracking:
+            if work.employee_id == employee:
+                if str(work.worked_hours).isdigit():
+                    directory[f'{employee.name}']['worked_days'] += 1
+                    directory[f'{employee.name}']['total_work_hours'] += int(work.worked_hours)
+                for dir in directory[f'{employee.name}'].keys():
+                    if dir == work.worked_hours:
+                        directory[f'{employee.name}'][f'{dir}'] += 1
+    context = {
+        'graph_pk':graph_pk,
+        "year":year,
+        "month":month,
+        'days':days,
+        "selected_month": name_month_ru,
+        'employees':employees,
+        'attendance': attendance, 
+        'no_attendance': no_attendance,
+        'time_tracking': tracking,
+        'graph':graph,
+        'calculations': directory,
+    }
+    return render(request,'graph/graph_admin_update.html',context)
+
+
+
+
+
 

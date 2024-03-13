@@ -29,3 +29,5 @@ class CustomUserManager(BaseUserManager):
             raise ValueError('superuser must have is_superuser=True')
         return self.create_user(username=username,password=password,first_name=first_name,last_name=last_name,**kwargs)
     
+    
+
