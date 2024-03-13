@@ -9,7 +9,7 @@ from django.utils.http import urlencode
 class EmployeesInline(admin.TabularInline):
     model = Tabel.employees.through
 
-    #sey ReadOnly on Inline
+    #set ReadOnly to Inline
     def get_readonly_fields(self, request, obj=None):
         readonly_fields = [field.name for field in self.model._meta.get_fields()]
         return readonly_fields
@@ -22,6 +22,12 @@ class EmployeesInline(admin.TabularInline):
 @admin.register(Tabel)
 class AdminTabel(admin.ModelAdmin):
     inlines = [EmployeesInline]
+    readonly_fields = ('id',
+                    'reservoir',
+                    'subdivision',
+                    'month',
+                    'year',
+                    )
     list_display = ('id',
                     'reservoir',
                     'subdivision',

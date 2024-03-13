@@ -30,8 +30,8 @@ class Tabel(models.Model):
     employees = models.ManyToManyField('graph.Employees',through="TabelEmployeesList",related_name='tabel_employee')
 
     class Meta:
-            verbose_name = 'График'
-            verbose_name_plural = "Графики"
+            verbose_name = 'Табель'
+            verbose_name_plural = "Табеля"
 
     def __str__(self) -> str:
         return f"{self.id} {self.subdivision} {self.reservoir}"

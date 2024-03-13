@@ -1,6 +1,7 @@
 import calendar
 from django.shortcuts import render
 from .models import *
+from tabel.models import Tabel
 from .forms import *
 # Create your views here.
 
@@ -67,14 +68,46 @@ def home(request):
 
 
 
-def graph(request):
+def graph_admin(request):
+    #chosen graph
     if 'graph_pk' in request.GET:
         graph_pk = request.GET['graph_pk']
         request.session['chosen_pk'] = graph_pk
-    
+        
+    #soglasovat' graphik
+    if request.method == 'POST':
+        # Check if the submitted form contains the key 'soglasovat'
+        if 'soglasovat' in request.POST:
+            print('log')
+            graph_pk = request.POST.get('graph_pk')
+            graph_inst = Graph.objects.get(pk=graph_pk)
+            # Create a Tabel instance with data from the chosen graph
+            employees_graph = graph.employees.all()
+            if not Tabel.objects.filter(
+                reservoir=graph_inst.reservoir,
+                subdivision=graph_inst.subdivision,
+                month=graph_inst.month,
+                year=graph_inst.year,
+                employees=employees_graph
+            ).exists():
+                # If Tabel object doesn't exist, create it
+                Tabel.objects.create(
+                    reservoir=graph_inst.reservoir,
+                    subdivision=graph_inst.subdivision,
+                    month=graph_inst.month,
+                    year=graph_inst.year,
+                    employees=employees_graph
+                )
+                print('ne bilo, no sozdal')
+            print('poluchilos')
+        print('ne poluchilos')
+
+
     graph_pk = request.session['chosen_pk']  
     graph = Graph.objects.get(pk=graph_pk)
     employees = graph.employees.all()
+    for employee in employees:
+        print(employee.name)
     attendance = Attendance.objects.filter(type='дни явок')
     no_attendance = Attendance.objects.filter(type='дни неявок')
     tracking = TimeTracking.objects.all()
@@ -136,4 +169,5 @@ def graph(request):
         'graph':graph,
         'calculations': directory,
     }
-    return render(request,'graph/graph.html',context)
+    return render(request,'graph/graph_admin.html',context)
+

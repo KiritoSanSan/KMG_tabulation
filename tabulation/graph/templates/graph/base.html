@@ -11,12 +11,12 @@
     <a href="/admin/graph/graph/">
         <button> График </button>
     </a>
-    <a href = "#">
+    <a href = "/admin/tabel/tabel/">
         <button>Плановый табель</button>
     </a>
-    <a href="{%url 'graph:home'%}">
+    {% comment %} <a href="{%url 'graph:home'%}">
         <button class="home_button">Назад</button>
-    </a>
+    </a> {% endcomment %}
     <h3>{{tabel.subdivision}} {{tabel.reservoir}} {{tabel.year}}</h3>
     {% if request.user.is_authenticated %}
         <p class="user_log">{{request.user.first_name}}</p>

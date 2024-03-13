@@ -45,7 +45,7 @@ class GraphAdmin(admin.ModelAdmin):
     def view_graph_link(self,obj):
          graph = obj.pk
          url = (
-              reverse("graph:graphs")
+              reverse("graph:graph_admin")
                       +"?"
                       +urlencode({'graph_pk':graph})
          )
