@@ -37,9 +37,21 @@ class AdminTabel(admin.ModelAdmin):
                     'subdivision',
                     'month',
                     'year',
+                    'view_tabel_link',
                     )
     list_filter = ('reservoir',
                    'year',
                    'subdivision')
+    
+    def view_tabel_link(self,obj):
+         tabel = obj.pk
+         url = (
+              reverse("tabel:tabel_admin")
+                      +"?"
+                      +urlencode({'tabel_pk':tabel})
+         )
+         return format_html('<a href={}>{}',url,f"Согласованный График {tabel}" )
+    view_tabel_link.short_description = 'Табели'
+
 
 

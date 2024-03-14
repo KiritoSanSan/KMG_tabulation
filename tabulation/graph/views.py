@@ -1,6 +1,14 @@
 import calendar
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from .models import *
+from django.contrib.admin.options import ModelAdmin
+
+from django.contrib.admin.utils import flatten_fieldsets
+
+from django.contrib.admin.helpers import AdminForm, InlineAdminFormSet
+
+from django.contrib.admin.options import get_content_type_for_model
+from django.contrib import messages
 from tabel.models import Tabel
 from .forms import *
 from django.core.exceptions import ObjectDoesNotExist
@@ -92,6 +100,8 @@ def graph_admin(request):
                     month=graph_inst.month,
                     year=graph_inst.year,
                 )
+                if tabel_instance:
+                    messages.error(request,'Табель уже согласован')
             except ObjectDoesNotExist:
                 # If Tabel object doesn't exist, create it
                 tabel_instance = Tabel.objects.create(
@@ -102,6 +112,7 @@ def graph_admin(request):
                 )
                 # Set the many-to-many relationship using the .set() method
                 tabel_instance.employees.set(employees_graph)
+                messages.success(request,'Табель согласован')
                 return redirect('admin:tabel_tabel_changelist')
 
 
@@ -238,6 +249,60 @@ def graph_admin_update(request):
         'calculations': directory,
     }
     return render(request,'graph/graph_admin_update.html',context)
+
+def graph_timetracking(request,pk):
+    obj = Graph.objects.get(pk=pk)
+    opts = obj._meta
+    app_label = opts.app_label
+    model_name = opts.model_name
+    
+    # Dummy object to simulate change form
+
+    employees = obj.employees.all()
+    adminform = AdminForm(obj, list(flatten_fieldsets(obj),), {}, None)
+
+    inline_admin_formsets = []
+
+    # Simulate inline admin formsets
+    # Replace YourInlineModel with your actual inline model
+    inline_admin_formsets.append(
+        InlineAdminFormSet(
+            employees,
+            [],
+            {},
+            {},
+            [],
+        )
+    )
+
+    context = {
+        'opts': opts,
+        'adminform': adminform,
+        'object_id': obj.pk,
+        'original': obj,
+        'is_popup': False,
+        'media': None,  # You can provide media if needed
+        'errors': True,  # You can provide errors if needed
+        'app_label': app_label,
+        'add': False,
+        'change': True,
+        'has_change_permission': True,
+        'has_delete_permission': True,
+        'has_add_permission': True,
+        'save_as': False,
+        'save_on_top': False,
+        'to_field': None,
+        'show_save': True,
+        'show_delete': True,
+        'show_save_and_continue': True,
+        'show_save_and_add_another': True,
+        'show_save_and_add_another': True,
+        'inline_admin_formsets': inline_admin_formsets,
+        'is_popup_var': "_popup",
+        'to_field_var': "_to_field",
+    }
+
+    return render(request, 'graph/graph_timetracking.html', context)
 
 
 

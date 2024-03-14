@@ -19,6 +19,8 @@ class EmployeesInline(admin.TabularInline):
     model = Graph.employees.through
     extra = 1
 
+    
+
 @admin.register(Employees)
 class EmployeesAdmin(admin.ModelAdmin):
     list_display = ('tabel_number',
@@ -42,7 +44,7 @@ class GraphAdmin(admin.ModelAdmin):
     list_filter = ('reservoir',
                    'year',
                    'subdivision')
-    #Add link to check each graph by pk 
+    #Add link to check each graph by pk
     def view_graph_link(self,obj):
          graph = obj.pk
          url = (

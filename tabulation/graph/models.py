@@ -140,3 +140,9 @@ class GraphEmployeesList(models.Model):
     class Meta:
             verbose_name = 'Работник'
             verbose_name_plural = "Работники"
+            unique_together = ['employee_id','graph_id']
+    
+    def __str__(self):
+
+        return f""
+    
