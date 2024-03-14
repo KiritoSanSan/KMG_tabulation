@@ -18,3 +18,9 @@ class GraphReservoirForm(forms.Form):
 class YearSelectForm(forms.Form):
     years = [(year, str(year)) for year in range(2023, 2026)]  # Generate choices for 2023, 2024, 2025
     year = forms.ChoiceField(choices=years)
+
+
+class GraphForm(forms.ModelForm):
+    class Meta:
+        model = Graph
+        fields = ('__all__')

@@ -133,6 +133,8 @@ class Graph(models.Model):
     def __str__(self) -> str:
         return f"{self.id} {self.subdivision} {self.reservoir}  "
 
+
+
 class GraphEmployeesList(models.Model):
     employee_id = models.ForeignKey(Employees,related_name='employees_graph_employee',on_delete=models.CASCADE)
     graph_id = models.ForeignKey(Graph,related_name='employees_graph_graph',on_delete=models.CASCADE)

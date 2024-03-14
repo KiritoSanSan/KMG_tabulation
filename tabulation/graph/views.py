@@ -193,6 +193,18 @@ def graph_admin_update(request):
     tracking = TimeTracking.objects.all()
     month = graph.month
     year = graph.year
+    if month and month is not None:
+        filter_month = int(month)
+        tracking = TimeTracking.objects.filter(employee_id__in = employees.values_list('tabel_number',flat=True))
+        tracking = tracking.filter(date__month=filter_month)
+        tabel_numbers = tracking.values_list('employee_id',flat=True)
+        employees = employees.filter(tabel_number__in=tabel_numbers)
+    if year and year is not None:
+        filter_year = int(year)
+        tracking = TimeTracking.objects.filter(employee_id__in = employees.values_list('tabel_number',flat=True))
+        tracking = tracking.filter(date__year=filter_year)
+        tabel_numbers = tracking.values_list('employee_id',flat=True)
+        employees = employees.filter(tabel_number__in=tabel_numbers)
     if request.method == 'POST':
         for key, value in request.POST.items():
             if key.startswith('worked_hours_'):
@@ -211,11 +223,6 @@ def graph_admin_update(request):
         year = date.year
     num_days = calendar.monthrange(int(year),int(month))[1]
     days = range(1, num_days + 1)
-    
-    # tracking = TimeTracking.objects.filter(employee_id__in=employees.values_list('tabel_number', flat=True))
-    # tracking = tracking.filter(date__month=month)
-    # tabel_numbers = tracking.values_list('employee_id', flat=True)
-    # employees = employees.filter(tabel_number__in=tabel_numbers)
     directory = {}
     for employee in employees:
         pairs = []
@@ -250,59 +257,36 @@ def graph_admin_update(request):
     }
     return render(request,'graph/graph_admin_update.html',context)
 
-def graph_timetracking(request,pk):
-    obj = Graph.objects.get(pk=pk)
-    opts = obj._meta
-    app_label = opts.app_label
-    model_name = opts.model_name
-    
-    # Dummy object to simulate change form
-
-    employees = obj.employees.all()
-    adminform = AdminForm(obj, list(flatten_fieldsets(obj),), {}, None)
-
-    inline_admin_formsets = []
-
-    # Simulate inline admin formsets
-    # Replace YourInlineModel with your actual inline model
-    inline_admin_formsets.append(
-        InlineAdminFormSet(
-            employees,
-            [],
-            {},
-            {},
-            [],
-        )
-    )
-
+def graph_add(request):
+    if request.method == 'POST':
+        form = GraphForm(request, data=request.POST)
+        if form.is_valid():
+            reservoir = form.cleaned_data['reservoir']
+            subdivision = form.cleaned_data['subdivision']
+            month = form.cleaned_data['month']
+            year = form.cleaned_data['year']
+            employees = form.cleaned_data['employees']
+            if reservoir and subdivision and month and year and employees is not None:
+                Graph.objects.create(
+                    reservoir=reservoir,
+                    subdivision=subdivision,
+                    month = month,
+                    year = year,
+                    employees=employees,
+                )
+                messages.success(request,'График создан')
+            else:
+                messages.error(request,'График не создан')
+        else:
+            print(form.errors)
+    else:
+        form = GraphForm(request)      
     context = {
-        'opts': opts,
-        'adminform': adminform,
-        'object_id': obj.pk,
-        'original': obj,
-        'is_popup': False,
-        'media': None,  # You can provide media if needed
-        'errors': True,  # You can provide errors if needed
-        'app_label': app_label,
-        'add': False,
-        'change': True,
-        'has_change_permission': True,
-        'has_delete_permission': True,
-        'has_add_permission': True,
-        'save_as': False,
-        'save_on_top': False,
-        'to_field': None,
-        'show_save': True,
-        'show_delete': True,
-        'show_save_and_continue': True,
-        'show_save_and_add_another': True,
-        'show_save_and_add_another': True,
-        'inline_admin_formsets': inline_admin_formsets,
-        'is_popup_var': "_popup",
-        'to_field_var': "_to_field",
+        'form':form
     }
+    return render(request,'graph/graph_add.html',context)
 
-    return render(request, 'graph/graph_timetracking.html', context)
+    
 
 
 
