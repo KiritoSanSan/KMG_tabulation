@@ -25,9 +25,9 @@ YEARS_CHOICES = (
 class Tabel(models.Model):
     reservoir= models.ForeignKey('graph.OilPlace', verbose_name="Месторождение",related_name='tabel_reservoir', on_delete=models.CASCADE)
     subdivision = models.ForeignKey('graph.Subdivision', verbose_name="Подразделение", on_delete=models.CASCADE,related_name = 'tabel_subdivision')
-    month = models.CharField(max_length = 100,verbose_name='Month',choices=MONTH_CHOICES_RU,default=None)
-    year = models.CharField(verbose_name = 'Year',choices=YEARS_CHOICES,max_length=4,default=None)
-    employees = models.ManyToManyField('graph.Employees',through="TabelEmployeesList",related_name='tabel_employee')
+    month = models.CharField(max_length = 100,verbose_name='Месяц',choices=MONTH_CHOICES_RU,default=None)
+    year = models.CharField(verbose_name = 'Год',choices=YEARS_CHOICES,max_length=4,default=None)
+    employees = models.ManyToManyField('graph.Employees',through="TabelEmployeesList",related_name='tabel_employee',verbose_name='Работники')
 
     class Meta:
             verbose_name = 'Табель'

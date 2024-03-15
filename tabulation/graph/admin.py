@@ -1,4 +1,6 @@
+from typing import Any
 from django.contrib import admin
+from django.http import HttpResponse
 from .models import *
 from django.urls import reverse
 from django.utils.html import format_html
@@ -31,7 +33,7 @@ class EmployeesAdmin(admin.ModelAdmin):
 
 @admin.register(Graph)
 class GraphAdmin(admin.ModelAdmin):
-    inlines = [EmployeesInline]
+    # inlines = [EmployeesInline]
     list_display = ('id',
                     'reservoir',
                     'subdivision',
@@ -42,6 +44,7 @@ class GraphAdmin(admin.ModelAdmin):
     list_filter = ('reservoir',
                    'year',
                    'subdivision')
+    
     #Add link to check each graph by pk
     def view_graph_link(self,obj):
          graph = obj.pk
