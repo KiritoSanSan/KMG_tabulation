@@ -24,3 +24,8 @@ class GraphForm(forms.ModelForm):
     class Meta:
         model = Graph
         fields = ('__all__')
+
+class EmployeeFormList(forms.Form):
+    employees = Employees.objects.all()
+    employee_choices = [(employee.tabel_number,employee.tabel_number) for employee in employees]
+    choices = forms.Select(choices=employee_choices)
