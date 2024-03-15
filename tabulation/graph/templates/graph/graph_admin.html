@@ -1,78 +1,78 @@
 {% extends "admin/base_site.html" %}
 <div id="site-name"><a href="{% url 'admin:index' %}">{{ site_header|default:_('Админ Панель') }}</a></div>
-{%block content%}
-        <table>
-            <thead>
-                <tr>
-                    <td rowspan="2">№!!!</td>
-                    <td rowspan="2">Фамилия, имя, отчество </td>
-                    <td rowspan="2">Профессия, должность</td>
-                    <td rowspan="2">Место-рождение</td>
-                    <td rowspan="2" class="vertical">Вахта</td>
-                    <td colspan="{{days|length}}">Дни месяца</td>
-                    <td rowspan="2">Дни вахты</td>
-                    <td rowspan="2">Дни отдыха</td>
-                    <td rowspan="2">Всего дней в месяце</td>
-                    <td rowspan="2">Кол-во часов</td>
-                </tr>
-                <tr>
-                    {% for day in days %}
-                        <td>{{day}}</td>
-                    {% endfor %}
-                </tr>
-            </thead>
-          <tbody>
-              <tr><td style="text-align: center;" colspan="100">за {{selected_month}} {{year}}</td></tr>
-                
-              {% for employee in employees %}
-                <tr>
-                  <td>{{forloop.counter}}</td>
-                  <td>{{employee.name}} {{employee.surname}} {{employee.middlename}}</td>
-                  <td>{{employee.job.name}} {{employee.job.description}}</td>
-                  <td>{{employee.oil_place}}</td>
-                  <td>{{employee.tariff_category}}</td>
-                  {% for day in days %}
-                    {% for data in time_tracking %}
-                      {% if data.date.year == year %}
-                        {% if data.date.month == month %}
-                          {% if data.date.day == day %}
-                            {% if data.employee_id.tabel_number == employee.tabel_number %}
-                              <td>{{data.worked_hours}}</td>
-                            {% endif %}
-                          {% endif %}
-                        {% endif %}
-                      {% endif %}
-                  {% endfor %}
-                  {% endfor %}
-
-                  {% for key, value in calculations.items %}
-                    {% if key == employee.name %}
-                      {% for calculation in value.values %}
-                        {% if calculation == 0 %}
-                          <td></td>
-                        {% else %}
-                          <td>{{calculation}}</td>
-                        {% endif %}
-                      {% endfor %}
+{% block content %}
+  <table>
+    <thead>
+      <tr>
+          <td rowspan="2">№№/пп</td>
+          <td rowspan="2">Фамилия, имя, отчество </td>
+          <td rowspan="2">Профессия, должность</td>
+          <td rowspan="2">Место-рождение</td>
+          <td rowspan="2" class="vertical">Вахта</td>
+          <td colspan="{{days|length}}">Дни месяца</td>
+          <td rowspan="2">Дни вахты</td>
+          <td rowspan="2">Дни отдыха</td>
+          <td rowspan="2">Всего дней в месяце</td>
+          <td rowspan="2">Кол-во часов</td>
+      </tr>
+      <tr>
+          {% for day in days %}
+              <td>{{day}}</td>
+          {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td style="text-align: center;" colspan="100">за {{selected_month}} {{year}}</td></tr>
+        
+      {% for employee in employees %}
+        <tr>
+          <td>{{forloop.counter}}</td>
+          <td>{{employee.name}} {{employee.surname}} {{employee.middlename}}</td>
+          <td>{{employee.job.name}} {{employee.job.description}}</td>
+          <td>{{employee.oil_place}}</td>
+          <td>{{employee.tariff_category}}</td>
+          {% for day in days %}
+            {% for data in time_tracking %}
+              {% if data.date.year == year %}
+                {% if data.date.month == month %}
+                  {% if data.date.day == day %}
+                    {% if data.employee_id.tabel_number == employee.tabel_number %}
+                      <td>{{data.worked_hours}}</td>
                     {% endif %}
-                  {% endfor %}
-                </tr>
+                  {% endif %}
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          {% endfor %}
+
+          {% for key, value in calculations.items %}
+            {% if key == employee.name %}
+              {% for calculation in value.values %}
+                {% if calculation == 0 %}
+                  <td></td>
+                {% else %}
+                  <td>{{calculation}}</td>
+                {% endif %}
               {% endfor %}
-          </tbody>
-        </table>
-    
-        <script>
-          function confirmSubmit() {
-              return confirm("Вы уверены, что хотите согласовать?");
-          }
-      </script>
-      <form method="post" action="/graph-admin/?graph_pk={{graph_pk}}" name='soglasovat' onsubmit="return confirmSubmit();">
-          {% csrf_token %}
-          <input type="hidden" name="graph_pk" value="{{ graph_pk }}">
-          <button type="submit" name="soglasovat">Согласовать</button>
-      </form>
-      <a href='/admin/graph/graph'><button>Назад</button></a>
-      <a href="{% url 'graph:graph_admin_update' %}">
-          <button type="submit" class="edit">Редактировать</button>
-      </a>
-{%endblock%}
+            {% endif %}
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <script>
+    function confirmSubmit() {
+        return confirm("Вы уверены, что хотите согласовать?");
+    }
+  </script>
+  <form method="post" action="/graph-admin/?graph_pk={{graph_pk}}" name='soglasovat' onsubmit="return confirmSubmit();">
+      {% csrf_token %}
+      <input type="hidden" name="graph_pk" value="{{ graph_pk }}">
+      <button type="submit" name="soglasovat">Согласовать</button>
+  </form>
+  <a href='/admin/graph/graph'><button>Назад</button></a>
+  <a href="{% url 'graph:graph_admin_update' %}">
+      <button type="submit" class="edit">Редактировать</button>
+  </a>
+{% endblock %}

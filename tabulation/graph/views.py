@@ -151,7 +151,7 @@ def graph_admin(request):
     num_days = calendar.monthrange(int(year),int(month))[1]
     days = range(1,num_days+1)
 
-    #calculation attendace start
+    #attendace calculation start
     directory = {}
     for employee in employees:
         pairs = [('worked_days', 0), ('weekends', 0), ('days_in_month', len(days)), ('total_work_hours', 0)]
@@ -166,7 +166,7 @@ def graph_admin(request):
                 else:
                     directory[f'{employee.name}']['weekends'] += 1
 
-    #calculation attendance end
+    #attendance calculation end
 
     context = {
         'graph_pk':graph_pk,
@@ -223,25 +223,24 @@ def graph_admin_update(request):
         year = date.year
     num_days = calendar.monthrange(int(year),int(month))[1]
     days = range(1, num_days + 1)
+
+    #attendance calculation start
     directory = {}
     for employee in employees:
-        pairs = []
-        pairs.append(('worked_days', 0))
-        for att in attendance_full:
-            pairs.append((f'{att}', 0))
-        pairs.append(('days_in_month', len(days)))
-        pairs.append(('total_work_hours', 0))
+        pairs = [('worked_days', 0), ('weekends', 0), ('days_in_month', len(days)), ('total_work_hours', 0)]
         directory[f'{employee.name}'] = dict(pairs)
 
     for employee in employees:
         for work in tracking:
             if work.employee_id == employee:
                 if str(work.worked_hours).isdigit():
-                    directory[f'{employee.name}']['worked_days'] += 1
+                    directory[f'{employee.name}']['worked_days'] += 1 
                     directory[f'{employee.name}']['total_work_hours'] += int(work.worked_hours)
-                for dir in directory[f'{employee.name}'].keys():
-                    if dir == work.worked_hours:
-                        directory[f'{employee.name}'][f'{dir}'] += 1
+                else:
+                    directory[f'{employee.name}']['weekends'] += 1
+    
+    #attendance calculation end
+    
     context = {
         'graph_pk':graph_pk,
         "year":year,

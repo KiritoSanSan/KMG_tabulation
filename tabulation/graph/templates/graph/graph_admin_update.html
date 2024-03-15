@@ -1,7 +1,7 @@
 {% extends "admin/base_site.html" %}
-{%block header%}Админ Панель{%endblock%}
-{%block content%}
-{% comment %} test {% endcomment %}
+{% block header%}Админ Панель{% endblock %}
+{% comment %} {% block content %}
+
 <table>
 	<tbody>
 		<tr>
@@ -105,4 +105,73 @@
 	</table>
 	<button type="submit">Save</button>
 </form>
-{% endblock content %}
+{% endblock content %} {% endcomment %}
+
+{% block content %}
+  	<table>
+		<thead>
+		<tr>
+			<td rowspan="2">№№/пп</td>
+			<td rowspan="2">Фамилия, имя, отчество </td>
+			<td rowspan="2">Профессия, должность</td>
+			<td rowspan="2">Место-рождение</td>
+			<td rowspan="2" class="vertical">Вахта</td>
+			<td colspan="{{days|length}}">Дни месяца</td>
+			<td rowspan="2">Дни вахты</td>
+			<td rowspan="2">Дни отдыха</td>
+			<td rowspan="2">Всего дней в месяце</td>
+			<td rowspan="2">Кол-во часов</td>
+		</tr>
+		<tr>
+			{% for day in days %}
+				<td>{{day}}</td>
+			{% endfor %}
+		</tr>
+		</thead>
+		<tbody>
+			<form method='POST' action="{% url 'graph:graph_admin_update' %}">
+				{% csrf_token %}
+				<tr><td style="text-align: center;" colspan="100">за {{selected_month}} {{year}}</td></tr>
+				
+				{% for employee in employees %}
+					<tr>
+						<td>{{forloop.counter}}</td>
+						<td>{{employee.name}} {{employee.surname}} {{employee.middlename}}</td>
+						<td>{{employee.job.name}} {{employee.job.description}}</td>
+						<td>{{employee.oil_place}}</td>
+						<td>{{employee.tariff_category}}</td>
+						{% for day in days %}
+							{% for data in time_tracking %}
+								{% if data.date.year == year %}
+									{% if data.date.month == month %}
+										{% if data.date.day == day %}
+											{% if data.employee_id.tabel_number == employee.tabel_number %}
+												{% comment %} <td>{{data.worked_hours}}</td> {% endcomment %}
+												<td><input style = "width: 20px;" type="text" name="worked_hours_{{ data.pk }}" value="{{ data.worked_hours }}"></td>	
+											{% endif %}
+										{% endif %}
+									{% endif %}
+								{% endif %}
+							{% endfor %}
+						{% endfor %}
+
+						{% for key, value in calculations.items %}
+							{% if key == employee.name %}
+								{% for calculation in value.values %}
+									{% if calculation == 0 %}
+										<td></td>
+									{% else %}
+										<td>{{calculation}}</td>
+									{% endif %}
+								{% endfor %}
+							{% endif %}
+						{% endfor %}
+					</tr>
+				{% endfor %}
+			
+		</tbody>
+	</table>
+	<button type="submit">Сохранить</button>
+	</form>
+	
+{% endblock %}
