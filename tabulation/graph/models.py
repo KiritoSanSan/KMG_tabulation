@@ -62,7 +62,7 @@ class Employees(models.Model):
 class TimeTracking(models.Model):
     employee_id = models.ForeignKey(Employees, verbose_name="Табельный Номер", on_delete=models.CASCADE)
     date = models.DateField(auto_now=False, auto_now_add=False, verbose_name = "Дата")
-    worked_hours = models.CharField(max_length = 5, verbose_name = "Проработано часов")
+    worked_hours = models.CharField(max_length = 5, verbose_name = "Проработано часов",default="0",null=True)
     
     class Meta:
         verbose_name = 'Контроль времени работников'

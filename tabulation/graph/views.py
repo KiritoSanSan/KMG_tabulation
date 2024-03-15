@@ -141,6 +141,7 @@ def graph_admin(request):
         tracking = tracking.filter(date__month=filter_month)
         tabel_numbers = tracking.values_list('employee_id',flat=True)
         employees = employees.filter(tabel_number__in=tabel_numbers)
+
     if year and year is not None:
         filter_year = int(year)
         tracking = TimeTracking.objects.filter(employee_id__in = employees.values_list('tabel_number',flat=True))
@@ -148,11 +149,13 @@ def graph_admin(request):
         tabel_numbers = tracking.values_list('employee_id',flat=True)
         employees = employees.filter(tabel_number__in=tabel_numbers)
 
+
+    tracking = tracking.filter(date__year=int(year)).filter(date__month=int(month))
     dates = tracking.values_list('date',flat=True).distinct()
+
     for date in dates:
         month = date.month
         year = date.year
-    
     num_days = calendar.monthrange(int(year),int(month))[1]
     days = range(1,num_days+1)
 
@@ -222,12 +225,14 @@ def graph_admin_update(request):
     name_month_en = calendar.month_name[int(month)]
     name_month_ru = month_names_ru[name_month_en]
     
+    tracking = tracking.filter(date__year=int(year)).filter(date__month=int(month))
     dates = tracking.values_list('date',flat=True).distinct()
+
     for date in dates:
         month = date.month
         year = date.year
     num_days = calendar.monthrange(int(year),int(month))[1]
-    days = range(1, num_days + 1)
+    days = range(1,num_days+1)
 
     #attendance calculation start
     directory = {}

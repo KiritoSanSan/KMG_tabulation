@@ -9,7 +9,7 @@
           <td rowspan="2">Профессия, должность</td>
           <td rowspan="2">Место-рождение</td>
           <td rowspan="2" class="vertical">Вахта</td>
-          <td colspan="{{days|length}}">Дни месяца</td>
+          <td colspan="{{days|length}}" style="text-align: center">Дни месяца</td>
           <td rowspan="2">Дни вахты</td>
           <td rowspan="2">Дни отдыха</td>
           <td rowspan="2">Всего дней в месяце</td>
@@ -49,7 +49,7 @@
             {% if key == employee.name %}
               {% for calculation in value.values %}
                 {% if calculation == 0 %}
-                  <td></td>
+                  <td>0</td>
                 {% else %}
                   <td>{{calculation}}</td>
                 {% endif %}
@@ -77,7 +77,7 @@
       <input type="hidden" name="graph_pk" value="{{ graph_pk }}">
       <button type="submit" name="soglasovat">Согласовать</button>
   </form>
-  
+
   <a href='/admin/graph/graph'><button>Назад</button></a>
   <a href="{% url 'graph:graph_admin_update' %}">
       <button type="submit" class="edit">Редактировать</button>
