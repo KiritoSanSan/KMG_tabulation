@@ -1,6 +1,5 @@
 from .models import *
 from django import forms
-# test
 
 class YearForm(forms.Form):
     year = forms.ChoiceField(choices=YEARS_CHOICES)
