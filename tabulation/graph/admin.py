@@ -33,7 +33,7 @@ class EmployeesAdmin(admin.ModelAdmin):
 
 @admin.register(Graph)
 class GraphAdmin(admin.ModelAdmin):
-    # inlines = [EmployeesInline]
+    inlines = [EmployeesInline]
     list_display = ('id',
                     'reservoir',
                     'subdivision',
@@ -53,7 +53,7 @@ class GraphAdmin(admin.ModelAdmin):
                       +"?"
                       +urlencode({'graph_pk':graph})
          )
-         return format_html('<a href={}>{}',url,f"График {graph}" )
+         return format_html('<a href={}>{}',url,f"График Вахты №{graph}")
     view_graph_link.short_description = 'Графики'
 
 @admin.register(OilPlace)

@@ -71,11 +71,13 @@
     {%csrf_token%}
     <button name='add_employee'>add employee</button>
   </form>
+
   <form method="post" action="/graph-admin/?graph_pk={{graph_pk}}" name='soglasovat' onsubmit="return confirmSubmit();">
       {% csrf_token %}
       <input type="hidden" name="graph_pk" value="{{ graph_pk }}">
       <button type="submit" name="soglasovat">Согласовать</button>
   </form>
+  
   <a href='/admin/graph/graph'><button>Назад</button></a>
   <a href="{% url 'graph:graph_admin_update' %}">
       <button type="submit" class="edit">Редактировать</button>

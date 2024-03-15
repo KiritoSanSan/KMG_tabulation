@@ -115,10 +115,11 @@ def graph_admin(request):
                 tabel_instance.employees.set(employees_graph)
                 messages.success(request,'Табель согласован')
                 return redirect('admin:tabel_tabel_changelist')
-        elif 'add_employee' in request.POST:
-            form = EmployeeFormList(request,data=request.POST)
-            if form.is_valid():
-                ...
+            
+        # elif 'add_employee' in request.POST:
+        #     form = EmployeeFormList(request,data=request.POST)
+        #     if form.is_valid():
+        #         ...
 
 
     graph_pk = request.session['chosen_pk']  

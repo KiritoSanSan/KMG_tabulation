@@ -67,6 +67,7 @@ class TimeTracking(models.Model):
     class Meta:
         verbose_name = 'Контроль времени работников'
         verbose_name_plural = "Контроль времени работников"
+        unique_together = ('date','employee_id')
 
     def __str__(self) -> str:
         return f"{self.id} {self.employee_id.name} {self.worked_hours}"
