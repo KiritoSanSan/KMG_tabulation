@@ -257,34 +257,6 @@ def graph_admin_update(request):
     }
     return render(request,'graph/graph_admin_update.html',context)
 
-def graph_add(request):
-    if request.method == 'POST':
-        form = GraphForm(request, data=request.POST)
-        if form.is_valid():
-            reservoir = form.cleaned_data['reservoir']
-            subdivision = form.cleaned_data['subdivision']
-            month = form.cleaned_data['month']
-            year = form.cleaned_data['year']
-            employees = form.cleaned_data['employees']
-            if reservoir and subdivision and month and year and employees is not None:
-                Graph.objects.create(
-                    reservoir=reservoir,
-                    subdivision=subdivision,
-                    month = month,
-                    year = year,
-                    employees=employees,
-                )
-                messages.success(request,'График создан')
-            else:
-                messages.error(request,'График не создан')
-        else:
-            print(form.errors)
-    else:
-        form = GraphForm(request)      
-    context = {
-        'form':form
-    }
-    return render(request,'graph/graph_add.html',context)
 
     
 
