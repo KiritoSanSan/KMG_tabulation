@@ -63,22 +63,18 @@
 
   <script>
     function confirmSubmit() {
-        return confirm("Вы уверены, что хотите согласовать?");
+      return confirm("Вы уверены, что хотите согласовать?");
     }
   </script>
 
-  <a href = "{% url 'admin:graph_employees_add' %}?_popup=1" class="">
-    <button type="button">Добавить сотрудника</button>
-  </a>
-
   <form method="post" action="/graph-admin/?graph_pk={{graph_pk}}" name='soglasovat' onsubmit="return confirmSubmit();">
-      {% csrf_token %}
-      <input type="hidden" name="graph_pk" value="{{ graph_pk }}">
-      <button type="submit" name="soglasovat">Согласовать</button>
+    {% csrf_token %}
+    <input type="hidden" name="graph_pk" value="{{ graph_pk }}">
+    <button type="submit" name="soglasovat">Согласовать</button>
   </form>
 
-  <a href='/admin/graph/graph'><button>Назад</button></a>
   <a href="{% url 'graph:graph_admin_update' %}">
-      <button type="submit" class="edit">Редактировать</button>
+    <button type="submit" class="edit">Редактировать</button>
   </a>
+  <a href='/admin/graph/graph'><button>Назад</button></a>
 {% endblock %}

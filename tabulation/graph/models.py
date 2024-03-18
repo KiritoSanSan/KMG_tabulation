@@ -63,7 +63,30 @@ class TimeTracking(models.Model):
     employee_id = models.ForeignKey(Employees, verbose_name="Табельный Номер", on_delete=models.CASCADE)
     date = models.DateField(auto_now=False, auto_now_add=False, verbose_name = "Дата")
     worked_hours = models.CharField(max_length = 5, verbose_name = "Проработано часов",default="0",null=True)
-    
+
+    # month = models.IntegerField(choices=MONTH_CHOICES_RU, default = 0)
+    # year = models.IntegerField(default = 2024)
+
+    # @property
+    # def days_in_month(self):
+    #     if int(self.month) in [1, 3, 5, 7, 8, 10, 12]:
+    #         return 31
+    #     elif int(self.month) == 2:
+    #         # Check if it's a leap year
+    #         if self.year % 4 == 0 and (self.year % 100 != 0 or self.year % 400 == 0):
+    #             return 29
+    #         else:
+    #             return 28
+    #     else:
+    #         return 30
+
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+
+    #     for i in range(1, 32):
+    #         if i > self.days_in_month:
+    #             delattr(self, f'day_{i}')
+
     class Meta:
         verbose_name = 'Контроль времени работников'
         verbose_name_plural = "Контроль времени работников"
