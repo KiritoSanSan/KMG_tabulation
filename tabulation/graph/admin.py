@@ -1,5 +1,7 @@
 from typing import Any
 from django.contrib import admin
+from django.contrib.admin import AdminSite
+from django.contrib.admin.sites import site
 from django.http import HttpResponse
 from .models import *
 from django.urls import reverse
@@ -44,7 +46,7 @@ class GraphAdmin(admin.ModelAdmin):
     list_filter = ('reservoir',
                    'year',
                    'subdivision')
-    
+
     #Add link to check each graph by pk
     def view_graph_link(self,obj):
          graph = obj.pk
@@ -71,4 +73,3 @@ class TimeTrackingAdmin(admin.ModelAdmin):
                     'date',
                     'worked_hours',
                     )
-

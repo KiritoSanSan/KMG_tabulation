@@ -1,4 +1,7 @@
 import calendar
+from django.contrib.admin import AdminSite
+from django.contrib import admin 
+from django.contrib.admin.sites import site
 from django.shortcuts import get_object_or_404, redirect, render
 from .models import *
 from django.contrib.admin.options import ModelAdmin
@@ -79,7 +82,6 @@ def home(request):
 
 
 def graph_admin(request):
-    
     #chosen graph
     if 'graph_pk' in request.GET:
         graph_pk = request.GET['graph_pk']
@@ -189,6 +191,21 @@ def graph_admin(request):
         'graph':graph,
         'calculations': directory,
     }
+    #adding admin side bar start
+    admin_site = AdminSite(request)
+
+    data = {
+        "has_permission": True,
+        "available_apps": admin_site.get_app_list(request),
+        "site_title": admin_site.site_title,
+        "site_header": admin_site.site_header,
+    }
+    # print(request.user.is_superuser)
+    admin_context = admin_site.each_context(request)
+    # print(admin_context)
+    admin_context.update(data)
+    context.update(admin_context)
+    #adding admin side bar end
     return render(request,'graph/graph_admin.html',context)
 
 def graph_admin_update(request):
@@ -213,6 +230,7 @@ def graph_admin_update(request):
         tracking = tracking.filter(date__year=filter_year)
         tabel_numbers = tracking.values_list('employee_id',flat=True)
         employees = employees.filter(tabel_number__in=tabel_numbers)
+        
     if request.method == 'POST':
         for key, value in request.POST.items():
             if key.startswith('worked_hours_'):
@@ -264,6 +282,11 @@ def graph_admin_update(request):
         'graph':graph,
         'calculations': directory,
     }
+    #adding admin side bar start
+    admin_site = AdminSite()
+    admin_context = admin_site.each_context(request)
+    context.update(admin_context)
+    #adding admin side bar end
     return render(request,'graph/graph_admin_update.html',context)
 
 

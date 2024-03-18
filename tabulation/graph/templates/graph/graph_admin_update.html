@@ -1,5 +1,5 @@
-{% extends "admin/base_site.html" %}
-{% block header%}Админ Панель{% endblock %}
+{% extends "admin/base.html" %}
+{% comment %} {% block header%}Админ Панель{% endblock %} {% endcomment %}
 {% comment %} {% block content %}
 
 <table>
@@ -136,7 +136,7 @@
 				{% for employee in employees %}
 					<tr>
 						<td>{{forloop.counter}}</td>
-						<td>{{employee.name}} {{employee.surname}} {{employee.middlename}}</td>
+						<td>{{employee.surname}} {{employee.name}} {{employee.middlename}}</td>
 						<td>{{employee.job.name}} {{employee.job.description}}</td>
 						<td>{{employee.oil_place}}</td>
 						<td>{{employee.tariff_category}}</td>
