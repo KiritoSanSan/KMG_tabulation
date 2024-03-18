@@ -1,5 +1,7 @@
 from django.db import models
+from django.forms import ValidationError
 from django.urls import reverse
+from django.contrib import messages
 # Create your models here.
 MONTH_CHOICES_RU = (
     ("1", "Январь"),
@@ -25,7 +27,7 @@ ATTENDACE_CHOICES = (
     ("дни явок","Дни Явок")
 )
 class Job(models.Model):
-    name = models.CharField(max_length = 100, verbose_name = "Название")
+    name = models.CharField(max_length = 100, verbose_name = "Название",unique=True)
     description = models.CharField(max_length=200, verbose_name = "Описание")
     
     class Meta:
@@ -49,6 +51,7 @@ class Employees(models.Model):
     class Meta:
         verbose_name = 'Работник'
         verbose_name_plural = 'Работники'
+        # unique_together = ('')
 
     def __str__(self) -> str:
         return f"{self.tabel_number} {self.name} {self.surname}"
@@ -56,15 +59,19 @@ class Employees(models.Model):
 class TimeTracking(models.Model):
     employee_id = models.ForeignKey(Employees, verbose_name="Табельный Номер", on_delete=models.CASCADE)
     date = models.DateField(auto_now=False, auto_now_add=False, verbose_name = "Дата")
-    worked_hours = models.CharField(max_length = 5, verbose_name = "Проработано часов")
+    worked_hours = models.CharField(max_length = 5, verbose_name = "Проработано часов",default="0",null=True)
     
     class Meta:
         verbose_name = 'Контроль времени работников'
         verbose_name_plural = "Контроль времени работников"
+        unique_together = ('date','employee_id')
 
     def __str__(self) -> str:
         return f"{self.id} {self.employee_id.name} {self.worked_hours}"
     
+
+    def create(self,validated_data):
+         ...
     # @classmethod
     # def update_missing_fact_entries(cls, month, year):
     #     plan_entries = cls.objects.filter(type='plan', date__month=month, date__year=year)
@@ -96,7 +103,7 @@ class Attendance(models.Model):
 
 
 class OilPlace(models.Model):
-    name = models.CharField(max_length=50, verbose_name = "Название Месторождения")
+    name = models.CharField(max_length=50, verbose_name = "Название Месторождения",unique=True)
     description = models.CharField(max_length=200, verbose_name = "Описание")
     
     class Meta:
@@ -107,7 +114,7 @@ class OilPlace(models.Model):
         return self.name
     
 class Subdivision(models.Model):
-    name = models.CharField(max_length=50,verbose_name = "Название Подразделения")
+    name = models.CharField(max_length=50,verbose_name = "Название Подразделения",unique=True)
     description = models.CharField(max_length=200, verbose_name = "Описание")
     
     class Meta:
@@ -120,15 +127,20 @@ class Subdivision(models.Model):
 class Graph(models.Model):
     reservoir= models.ForeignKey(OilPlace, verbose_name="Месторождение",related_name='graph_reservoir', on_delete=models.CASCADE)
     subdivision = models.ForeignKey(Subdivision, verbose_name="Подразделение", on_delete=models.CASCADE,related_name = 'graph_subdivision')
-    month = models.CharField(max_length = 100,verbose_name='Month',choices=MONTH_CHOICES_RU,default=None)
-    year = models.CharField(verbose_name = 'Year',choices=YEARS_CHOICES,max_length=4,default=None)
-    employees = models.ManyToManyField(Employees,through="GraphEmployeesList",related_name='graph_employee')
+    month = models.CharField(max_length = 100,verbose_name='Месяц',choices=MONTH_CHOICES_RU,default=None)
+    year = models.CharField(verbose_name = 'Год',choices=YEARS_CHOICES,max_length=4,default=None)
+    employees = models.ManyToManyField(Employees,through="GraphEmployeesList",related_name='graph_employee',verbose_name='Работники')
+             
+    
     class Meta:
             verbose_name = 'График'
             verbose_name_plural = "Графики"
+            unique_together = ('reservoir', 'subdivision','month','year')
+
 
     def __str__(self) -> str:
         return f"{self.id} {self.subdivision} {self.reservoir}  "
+
 
 
 

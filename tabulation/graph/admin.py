@@ -1,4 +1,6 @@
+from typing import Any
 from django.contrib import admin
+from django.http import HttpResponse
 from .models import *
 from django.urls import reverse
 from django.utils.html import format_html
@@ -42,6 +44,7 @@ class GraphAdmin(admin.ModelAdmin):
     list_filter = ('reservoir',
                    'year',
                    'subdivision')
+    
     #Add link to check each graph by pk
     def view_graph_link(self,obj):
          graph = obj.pk
@@ -50,7 +53,7 @@ class GraphAdmin(admin.ModelAdmin):
                       +"?"
                       +urlencode({'graph_pk':graph})
          )
-         return format_html('<a href={}>{}',url,f"График {graph}" )
+         return format_html('<a href={}>{}',url,f"График Вахты №{graph}")
     view_graph_link.short_description = 'Графики'
 
 @admin.register(OilPlace)

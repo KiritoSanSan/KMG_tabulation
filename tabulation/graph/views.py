@@ -79,6 +79,7 @@ def home(request):
 
 
 def graph_admin(request):
+    
     #chosen graph
     if 'graph_pk' in request.GET:
         graph_pk = request.GET['graph_pk']
@@ -114,7 +115,11 @@ def graph_admin(request):
                 tabel_instance.employees.set(employees_graph)
                 messages.success(request,'Табель согласован')
                 return redirect('admin:tabel_tabel_changelist')
-
+            
+        # elif 'add_employee' in request.POST:
+        #     form = EmployeeFormList(request,data=request.POST)
+        #     if form.is_valid():
+        #         ...
 
 
     graph_pk = request.session['chosen_pk']  
@@ -136,6 +141,7 @@ def graph_admin(request):
         tracking = tracking.filter(date__month=filter_month)
         tabel_numbers = tracking.values_list('employee_id',flat=True)
         employees = employees.filter(tabel_number__in=tabel_numbers)
+
     if year and year is not None:
         filter_year = int(year)
         tracking = TimeTracking.objects.filter(employee_id__in = employees.values_list('tabel_number',flat=True))
@@ -145,10 +151,10 @@ def graph_admin(request):
 
     tracking = tracking.filter(date__year=int(year)).filter(date__month=int(month))
     dates = tracking.values_list('date',flat=True).distinct()
+
     for date in dates:
         month = date.month
         year = date.year
-    
     num_days = calendar.monthrange(int(year),int(month))[1]
     days = range(1,num_days+1)
 
@@ -218,12 +224,14 @@ def graph_admin_update(request):
     name_month_en = calendar.month_name[int(month)]
     name_month_ru = month_names_ru[name_month_en]
     
+    tracking = tracking.filter(date__year=int(year)).filter(date__month=int(month))
     dates = tracking.values_list('date',flat=True).distinct()
+
     for date in dates:
         month = date.month
         year = date.year
     num_days = calendar.monthrange(int(year),int(month))[1]
-    days = range(1, num_days + 1)
+    days = range(1,num_days+1)
 
     #attendance calculation start
     directory = {}
