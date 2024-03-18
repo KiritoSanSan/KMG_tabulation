@@ -143,6 +143,7 @@ def graph_admin(request):
         tabel_numbers = tracking.values_list('employee_id',flat=True)
         employees = employees.filter(tabel_number__in=tabel_numbers)
 
+    tracking = tracking.filter(date__year=int(year)).filter(date__month=int(month))
     dates = tracking.values_list('date',flat=True).distinct()
     for date in dates:
         month = date.month

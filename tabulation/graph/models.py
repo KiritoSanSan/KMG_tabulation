@@ -34,9 +34,6 @@ class Job(models.Model):
 
     def __str__(self) -> str:
         return self.name
-    
-    
-    
 
     
 class Employees(models.Model):
