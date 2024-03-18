@@ -1,5 +1,8 @@
-{% extends "admin/base_site.html" %}
-<div id="site-name"><a href="{% url 'admin:index' %}">{{ site_header|default:_('Админ Панель') }}</a></div>
+{% extends "admin/base.html" %}
+{% block nav-sidebar %}
+  {{block.super}}
+{% endblock nav-sidebar %}
+{% comment %} <div id="site-name"><a href="{% url 'admin:index' %}">{{ site_header|default:_('Админ Панель') }}</a></div> {% endcomment %}
 {% block content %}
   <table>
     <thead>
@@ -27,7 +30,7 @@
       {% for employee in employees %}
         <tr>
           <td>{{forloop.counter}}</td>
-          <td>{{employee.name}} {{employee.surname}} {{employee.middlename}}</td>
+          <td>{{employee.surname}} {{employee.name}} {{employee.middlename}}</td>
           <td>{{employee.job.name}} {{employee.job.description}}</td>
           <td>{{employee.oil_place}}</td>
           <td>{{employee.tariff_category}}</td>
