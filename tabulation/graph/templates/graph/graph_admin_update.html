@@ -1,6 +1,8 @@
 {% extends "admin/base_site.html" %}
+{% load i18n %}
 {% block header%}Админ Панель{% endblock %}
 {% block content %}
+{{block.super}}
   	<table>
 		<thead>
 		<tr>
@@ -22,53 +24,14 @@
 		</tr>
 		</thead>
 		<tbody>
-			<form method='POST' action="{% url 'graph:graph_admin_update' %}">
-				{% csrf_token %}
-				<tr><td style="text-align: center;" colspan="100">за {{selected_month}} {{year}}</td></tr>
-				
-				{% for employee in employees %}
-					<tr>
-						<td>{{forloop.counter}}</td>
-						<td>{{employee.surname}} {{employee.name}} {{employee.middlename}}</td>
-						<td>{{employee.job.name}} {{employee.job.description}}</td>
-						<td>{{employee.oil_place}}</td>
-						<td>{{employee.tariff_category}}</td>
-						{% for day in days %}
-							{% for data in time_tracking %}
-								{% if data.date.year == year %}
-									{% if data.date.month == month %}
-										{% if data.date.day == day %}
-											{% if data.employee_id.tabel_number == employee.tabel_number %}
-												{% comment %} <td>{{data.worked_hours}}</td> {% endcomment %}
-												<td><input style = "width: 20px;" type="text" name="worked_hours_{{ data.pk }}" value="{{ data.worked_hours }}"></td>	
-											{% endif %}
-										{% endif %}
-									{% endif %}
-								{% endif %}
-							{% endfor %}
-						{% endfor %}
-
-						{% for key, value in calculations.items %}
-							{% if key == employee.name %}
-								{% for calculation in value.values %}
-									{% if calculation == 0 %}
-										<td>0</td>
-									{% else %}
-										<td>{{calculation}}</td>
-									{% endif %}
-								{% endfor %}
-							{% endif %}
-						{% endfor %}
-					</tr>
-				{% endfor %}
-			
-		</tbody>
-	</table>
-	<a href = "{% url 'admin:graph_employees_add' %}?_popup=1" class="">
-		<button type="button">Добавить сотрудника</button>
-	</a>
-	<button type="submit">Сохранить</button>
-	<a href="{% url 'graph:graph_admin' %}""><button>Назад</button></a>
-	</form>
+		<div class="add_employee">
+			{%include 'graph/forms.html'%}
+		</div>
+		<a href = "" class="">
+			<button type="button"
+			hx-get="{% url 'graph:add_employee' %}"
+			hx-target="#add_employee"
+			hx-swap="beforeend">Добавить сотрудника</button>
+		</a>
 	
 {% endblock %}

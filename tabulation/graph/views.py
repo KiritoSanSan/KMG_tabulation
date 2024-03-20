@@ -1,4 +1,14 @@
 import calendar
+from django.urls import NoReverseMatch
+from django.utils.text import capfirst
+
+from functools import update_wrapper
+from typing import Any
+from django.apps import apps
+
+from django.db.models.query import QuerySet
+from django.views.generic import ListView, CreateView, FormView, DetailView
+from datetime import datetime
 from django.contrib.admin import AdminSite
 from django.contrib import admin 
 from django.contrib.admin.sites import site
@@ -17,6 +27,12 @@ from .forms import *
 from django.core.exceptions import ObjectDoesNotExist
 
 # Create your views here.
+
+YEARS_CHOICES = (
+    ('2023','2023'),
+    ('2024','2024'),
+    ('2025','2025')
+)
 
 month_names_ru = {
     "January": "Январь",
@@ -80,6 +96,19 @@ def home(request):
     return render(request,'graph/home.html',context)
 
 
+def wrap_admin_view(view, cacheable=False):
+    """
+    Use this to wrap view functions used in admin dashboard
+    Note: Only the views that require a admin login
+    """
+    from django.contrib import admin
+
+    def wrapper(*args, **kwargs):
+        return admin.site.admin_view(view, cacheable)(*args, **kwargs)
+
+    wrapper.admin_site = admin.site
+    return update_wrapper(wrapper, view)
+
 
 def graph_admin(request):
     #chosen graph
@@ -117,11 +146,7 @@ def graph_admin(request):
                 tabel_instance.employees.set(employees_graph)
                 messages.success(request,'Табель согласован')
                 return redirect('admin:tabel_tabel_changelist')
-            
-        # elif 'add_employee' in request.POST:
-        #     form = EmployeeFormList(request,data=request.POST)
-        #     if form.is_valid():
-        #         ...
+
 
 
     graph_pk = request.session['chosen_pk']  
@@ -192,19 +217,90 @@ def graph_admin(request):
         'calculations': directory,
     }
     #adding admin side bar start
-    admin_site = AdminSite(request)
+
+
+
+
+    admin_site = AdminSite()
+    available_apps = []
+
+    app_list = admin.site.get_app_list(request)
+    for app in app_list:
+        app_name = app['name']
+        app_label = app['app_label']
+        app_url = reverse('admin:index') + f"{app_label}/"
+        models_list = []
+        for model_dict in app['models']:
+            model = model_dict.get('model')  # Get the model class if it exists
+            model_admin = admin_site._registry.get(model)
+            print(model_admin)
+            if model:
+                app_label = model._meta.app_label
+
+                # has_module_perms = model_admin.has_module_permission(request)
+                # if not has_module_perms:
+                #     continue
+
+                # perms = model_admin.get_model_perms(request)
+                # print("perms",perms)
+                # if True not in perms.values():
+                #     continue
+
+                info = (app_label, model._meta.model_name)
+                model_info = {
+                    "model": model,
+                    "name": capfirst(model._meta.verbose_name_plural),
+                    "object_name": model._meta.object_name,
+                    # "perms": perms,
+                    "admin_url": None,
+                    "add_url": None,
+                }
+                model_info["admin_url"] = reverse(
+                            "admin:%s_%s_changelist" % info, current_app=capfirst(model._meta.verbose_name_plural)
+                        )
+                model_info["add_url"] = reverse(
+                            "admin:%s_%s_add" % info, current_app=capfirst(model._meta.verbose_name_plural)
+                        )
+                # if perms.get("change") or perms.get("view"):
+                #     model_info["view_only"] = not perms.get("change")
+                #     try:
+                #         model_info["admin_url"] = reverse(
+                #             "admin:%s_%s_changelist" % info, current_app=capfirst(model._meta.verbose_name_plural)
+                #         )
+                #     except NoReverseMatch:
+                #         pass
+                # if perms.get("add"):
+                #     try:
+                #         model_info["add_url"] = reverse(
+                #             "admin:%s_%s_add" % info, current_app=capfirst(model._meta.verbose_name_plural)
+                #         )
+                #     except NoReverseMatch:
+                #         pass
+                # print("MODEL info",model_info)
+                models_list.append(model_info)
+        available_apps.append(
+            {
+                'name': app_name,
+                'models': models_list,
+                'app_label': app_label,
+                'app_url': app_url
+            }
+        )
 
     data = {
         "has_permission": True,
-        "available_apps": admin_site.get_app_list(request),
+        "available_apps": available_apps,
         "site_title": admin_site.site_title,
         "site_header": admin_site.site_header,
     }
-    # print(request.user.is_superuser)
+
     admin_context = admin_site.each_context(request)
-    # print(admin_context)
     admin_context.update(data)
     context.update(admin_context)
+
+    
+
+    
     #adding admin side bar end
     return render(request,'graph/graph_admin.html',context)
 
@@ -230,27 +326,48 @@ def graph_admin_update(request):
         tracking = tracking.filter(date__year=filter_year)
         tabel_numbers = tracking.values_list('employee_id',flat=True)
         employees = employees.filter(tabel_number__in=tabel_numbers)
-        
+    
+    
+    dates = tracking.values_list('date',flat=True).distinct()
+    for date in dates:
+        month = date.month
+        year = date.year
+    num_days = calendar.monthrange(int(year),int(month))[1]
+    days = range(1,num_days+1)
+
     if request.method == 'POST':
         for key, value in request.POST.items():
             if key.startswith('worked_hours_'):
-                time_tracking_id = key.split('_')[2]
-                time_tracking_instance = TimeTracking.objects.get(pk=time_tracking_id)
-                time_tracking_instance.worked_hours = value
-                time_tracking_instance.save()
+                time_tracking_day = int(key.split('_')[3])  
+                key_parts = key.split('_')
+                if len(key_parts) > 5:
+                    for day in days:
+                        time_tracking_employee = key.split('_')[4] + "_" + key.split('_')[5]
+                        if day == time_tracking_day:
+                                time_tracking_id = key.split('_')[2]
+                                time_tracking_instance = TimeTracking.objects.get(pk=time_tracking_id)
+                                time_tracking_instance.worked_hours = value
+                                time_tracking_instance.save()
+                        else:
+                            TimeTracking.objects.create(
+                                employee_id=time_tracking_employee,
+                                date=datetime(int(year), int(month), day),
+                                worked_hours="0",
+                            )
+                else:
+                    time_tracking_id = key.split('_')[2]
+                    time_tracking_instance = TimeTracking.objects.get(pk=time_tracking_id)
+                    time_tracking_instance.worked_hours = value
+                    time_tracking_instance.save()
+
         return redirect(reverse('graph:graph_admin') +f'?graph_pk={graph_pk}')
     
     name_month_en = calendar.month_name[int(month)]
     name_month_ru = month_names_ru[name_month_en]
     
     tracking = tracking.filter(date__year=int(year)).filter(date__month=int(month))
-    dates = tracking.values_list('date',flat=True).distinct()
 
-    for date in dates:
-        month = date.month
-        year = date.year
-    num_days = calendar.monthrange(int(year),int(month))[1]
-    days = range(1,num_days+1)
+
 
     #attendance calculation start
     directory = {}
@@ -269,6 +386,9 @@ def graph_admin_update(request):
     
     #attendance calculation end
     
+    employee_form = EmployeeCreateForm()
+
+
     context = {
         'graph_pk':graph_pk,
         "year":year,
@@ -282,15 +402,125 @@ def graph_admin_update(request):
         'graph':graph,
         'calculations': directory,
     }
+
     #adding admin side bar start
+
+
+
+
     admin_site = AdminSite()
+    available_apps = []
+
+    app_list = admin.site.get_app_list(request)
+    for app in app_list:
+        app_name = app['name']
+        app_label = app['app_label']
+        app_url = reverse('admin:index') + f"{app_label}/"
+        models_list = []
+        for model_dict in app['models']:
+            model = model_dict.get('model')  # Get the model class if it exists
+            model_admin = admin_site._registry.get(model)
+            print(model_admin)
+            if model:
+                app_label = model._meta.app_label
+
+                # has_module_perms = model_admin.has_module_permission(request)
+                # if not has_module_perms:
+                #     continue
+
+                # perms = model_admin.get_model_perms(request)
+                # print("perms",perms)
+                # if True not in perms.values():
+                #     continue
+
+                info = (app_label, model._meta.model_name)
+                model_info = {
+                    "model": model,
+                    "name": capfirst(model._meta.verbose_name_plural),
+                    "object_name": model._meta.object_name,
+                    # "perms": perms,
+                    "admin_url": None,
+                    "add_url": None,
+                }
+                model_info["admin_url"] = reverse(
+                            "admin:%s_%s_changelist" % info, current_app=capfirst(model._meta.verbose_name_plural)
+                        )
+                model_info["add_url"] = reverse(
+                            "admin:%s_%s_add" % info, current_app=capfirst(model._meta.verbose_name_plural)
+                        )
+                # if perms.get("change") or perms.get("view"):
+                #     model_info["view_only"] = not perms.get("change")
+                #     try:
+                #         model_info["admin_url"] = reverse(
+                #             "admin:%s_%s_changelist" % info, current_app=capfirst(model._meta.verbose_name_plural)
+                #         )
+                #     except NoReverseMatch:
+                #         pass
+                # if perms.get("add"):
+                #     try:
+                #         model_info["add_url"] = reverse(
+                #             "admin:%s_%s_add" % info, current_app=capfirst(model._meta.verbose_name_plural)
+                #         )
+                #     except NoReverseMatch:
+                #         pass
+                # print("MODEL info",model_info)
+                models_list.append(model_info)
+        available_apps.append(
+            {
+                'name': app_name,
+                'models': models_list,
+                'app_label': app_label,
+                'app_url': app_url
+            }
+        )
+
+    data = {
+        "has_permission": True,
+        "available_apps": available_apps,
+        "site_title": admin_site.site_title,
+        "site_header": admin_site.site_header,
+    }
+
     admin_context = admin_site.each_context(request)
+    admin_context.update(data)
     context.update(admin_context)
+
+    
+
+    
     #adding admin side bar end
     return render(request,'graph/graph_admin_update.html',context)
 
 
-    
+def add_employee(request):
+    if request.method == 'POST':
+        pass
+
+    return render(request,'graph/graph_admin_update.html',{"form":EmployeeCreateForm})
+
+# class CreationTimeTracking(CreateView):
+#     model = TimeTracking
+#     template_name = "graph/creation_timetracking.html"
+#     # form_class = TimeTrackingForm
+#     def get_queryset(self) -> QuerySet[Any]:
+#         years = self.request.GET.get('years')
+#         months = self.request.GET.get('months')
+#         time_tracking = TimeTracking.objects.all()
+        
+#         if years:
+#             year = int(years)
+
+
+#         return time_tracking
+
+#     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+#         context = super().get_context_data(**kwargs)
+#         # context['form'] = timetracking_form
+#         context['YEARS_CHOICES'] = YEARS_CHOICES
+#         context['MONTH_CHOICES_RU'] = MONTH_CHOICES_RU
+#         return context
+
+
 
 
 

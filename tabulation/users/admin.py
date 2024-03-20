@@ -43,7 +43,7 @@ class AccountAdmin(UserAdmin):
             email_parts = obj.email.split('@')
             username = f"{email_parts[0]}"  
             obj.username = username
-
+        obj.save()
 
 admin.site.site_header = 'Админ Панель'
 admin.site.site_title = 'title'

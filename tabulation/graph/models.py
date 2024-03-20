@@ -2,6 +2,7 @@ from django.db import models
 from django.forms import ValidationError
 from django.urls import reverse
 from django.contrib import messages
+import datetime
 # Create your models here.
 MONTH_CHOICES_RU = (
     ("1", "Январь"),
@@ -64,29 +65,6 @@ class TimeTracking(models.Model):
     date = models.DateField(auto_now=False, auto_now_add=False, verbose_name = "Дата")
     worked_hours = models.CharField(max_length = 5, verbose_name = "Проработано часов",default="0",null=True)
 
-    # month = models.IntegerField(choices=MONTH_CHOICES_RU, default = 0)
-    # year = models.IntegerField(default = 2024)
-
-    # @property
-    # def days_in_month(self):
-    #     if int(self.month) in [1, 3, 5, 7, 8, 10, 12]:
-    #         return 31
-    #     elif int(self.month) == 2:
-    #         # Check if it's a leap year
-    #         if self.year % 4 == 0 and (self.year % 100 != 0 or self.year % 400 == 0):
-    #             return 29
-    #         else:
-    #             return 28
-    #     else:
-    #         return 30
-
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
-
-    #     for i in range(1, 32):
-    #         if i > self.days_in_month:
-    #             delattr(self, f'day_{i}')
-
     class Meta:
         verbose_name = 'Контроль времени работников'
         verbose_name_plural = "Контроль времени работников"
@@ -98,20 +76,7 @@ class TimeTracking(models.Model):
 
     def create(self,validated_data):
          ...
-    # @classmethod
-    # def update_missing_fact_entries(cls, month, year):
-    #     plan_entries = cls.objects.filter(type='plan', date__month=month, date__year=year)
-    #     fact_entries = cls.objects.filter(type='fact', date__month=month, date__year=year)
-    #     missing_entries = plan_entries.exclude(pk__in=fact_entries.values_list('pk', flat=True))
 
-    #     for entry in missing_entries:
-    #         if not cls.objects.filter(type='fact', employee_id=entry.employee_id, date=entry.date).exists():
-    #             cls.objects.create(
-    #                 employee_id=entry.employee_id,
-    #                 date=entry.date,
-    #                 worked_hours=entry.worked_hours,
-    #                 type='fact'
-    #             )
 
 class Attendance(models.Model):
     name = models.CharField(max_length=50, verbose_name = "Название")

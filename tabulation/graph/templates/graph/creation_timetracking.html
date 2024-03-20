@@ -1,0 +1,27 @@
+{% extends 'admin/base.html' %}
+{% block nav-sidebar %}
+  {{block.super}}
+{% endblock nav-sidebar %}
+{% block content %}
+<form method='GET'>
+    <label for="years">Год:</label>
+        <select name="years">
+            {% for year_value, year_label in YEARS_CHOICES %}
+                <option value="{{ year_value }}" {% if selected_option_year == year_value %} selected {% endif %}>
+                    {{ year_label }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <label for="months">Месяц:</label>
+        <select name="months">
+            {% for month_value, month_label in MONTH_CHOICES_RU %}
+                <option value="{{ month_value }}" {% if selected_option_month == month_value %} selected {% endif %}>
+                    {{ month_label }}
+                </option>
+            {% endfor %}
+        </select>
+        
+    <button type="submit">Set Worked Hours</button>
+</form>
+{% endblock %}

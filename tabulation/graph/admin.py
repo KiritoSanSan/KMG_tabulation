@@ -24,6 +24,7 @@ class EmployeesInline(admin.TabularInline):
     model = Graph.employees.through
     extra = 1
 
+
 @admin.register(Employees)
 class EmployeesAdmin(admin.ModelAdmin):
     list_display = ('tabel_number',
@@ -67,9 +68,17 @@ class OilPlaceAdmin(admin.ModelAdmin):
 class SubdivisionAdmin(admin.ModelAdmin):
     list_display = ('name','description')
 
+# class TimeTrackingEmployeeInline(admin.TabularInline):
+#      model = TimeTracking.employee_id.through
+#      extra = 1
+
 @admin.register(TimeTracking)
 class TimeTrackingAdmin(admin.ModelAdmin):
-        list_display = ('employee_id',
-                    'date',
+        # inlines = [TimeTrackingEmployeeInline]
+        list_display = (
+                    'employee_id',
                     'worked_hours',
+                    'date',
                     )
+
+

@@ -1,6 +1,26 @@
 from .models import *
 from django import forms
 
+MONTH_CHOICES_RU = (
+    ("1", "Январь"),
+    ("2", "Февраль"),
+    ("3", "Март"),
+    ("4", "Апрель"),
+    ("5", "Май"),
+    ("6", "Июнь"),
+    ("7", "Июль"),
+    ("8", "Август"),
+    ("9", "Сентябрь"),
+    ("10", "Октябрь"),
+    ("11", "Ноябрь"),
+    ("12", "Декабрь"),
+)
+YEARS_CHOICES = (
+    ('2023','2023'),
+    ('2024','2024'),
+    ('2025','2025')
+)
+
 class YearForm(forms.Form):
     year = forms.ChoiceField(choices=YEARS_CHOICES)
 
@@ -29,3 +49,16 @@ class EmployeeFormList(forms.Form):
     employees = Employees.objects.all()
     employee_choices = [(employee.tabel_number,employee.tabel_number) for employee in employees]
     choices = forms.Select(choices=employee_choices)
+
+class TimeTrackingForm(forms.ModelForm):
+    class Meta:
+        model = TimeTracking
+        fields = ('__all__')
+
+class EmployeeCreateForm(forms.ModelForm):
+    class Meta:
+        model = Employees
+        fields = ("__all__")
+        
+
+
