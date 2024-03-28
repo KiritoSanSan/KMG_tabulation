@@ -1,0 +1,8 @@
+{%extends 'admin/change_list_object_tools.html'%}
+
+<!--remove "add" button-->
+{%if request.path != "/admin/tabel/tabel/"%}
+    {% block object-tools-items %}
+    
+    {% endblock %}
+{%endif%}

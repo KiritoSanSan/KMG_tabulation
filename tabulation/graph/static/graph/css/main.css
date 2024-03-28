@@ -1,0 +1,115 @@
+html{
+    margin: 0;
+}
+
+h3{
+    margin: 5px 0 10px;
+}
+
+table{
+    font-size: 12px;
+}
+
+button{
+    width: 30%;
+    padding: 5px;
+}
+
+.home_button{
+    width: 5%;
+}
+
+td{
+    border: 1px solid black;
+}
+
+
+.vertical {
+    writing-mode: vertical-rl;
+    text-align: center;
+    white-space: nowrap;
+    transform: rotate(180deg);
+}
+
+.navbar_home{
+    display: flex;
+    align-items: center;
+    margin: 10px 0 0 0;
+}
+
+.navbar_home form{
+    margin-right: 55vw;
+    text-align: center;
+}
+
+.filters{
+    display: flex;
+    align-items: center;
+}
+
+.navbar_home a, .user_log{
+    margin: 0;
+    position: relative;
+    bottom: 3px;
+}
+
+
+.filter_content{
+    width: 90vw;
+}
+
+.filter_content li{
+    padding: 10px;
+    margin: 5px;
+    border: 1px solid black;
+}
+
+.filter_content ul{
+    list-style: none;
+    padding-left: 20px;
+}
+
+.nums{
+    padding: 5px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    /* text-align: center; */
+}
+
+table input {
+    width: 40px; 
+    padding: 3px;
+    box-sizing: border-box;
+}
+
+.cell_w input{
+    width: 160px;
+} 
+
+.edit{
+    width: 120px;
+    margin: 10px 5px;
+    float: right;
+}
+
+
+
+.form-container {
+    display: flex;
+    flex-direction: column;
+}
+
+form {
+    margin-bottom: 10px;
+}
+
+.save {
+    align-self: flex-end;
+}
+.select-form-button{
+    width: 60px;
+    height: 30px;
+} 

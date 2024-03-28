@@ -1,0 +1,39 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+{% block branding %}
+<div id="site-name"><a href="{% url 'admin:index' %}">Админ Панель</a></div>
+{%endblock%}
+{% block content %}
+{{block.super}}
+  	<table>
+		<thead>
+		<tr>
+			<td rowspan="2">№№/пп</td>
+			<td rowspan="2">Фамилия, имя, отчество </td>
+			<td rowspan="2">Профессия, должность</td>
+			<td rowspan="2">Место-рождение</td>
+			<td rowspan="2" class="vertical">Вахта</td>
+			<td colspan="{{days|length}}" style="text-align: center">Дни месяца</td>
+			<td rowspan="2">Дни вахты</td>
+			<td rowspan="2">Дни отдыха</td>
+			<td rowspan="2">Всего дней в месяце</td>
+			<td rowspan="2">Кол-во часов</td>
+		</tr>
+		<tr>
+			{% for day in days %}
+				<td>{{day}}</td>
+			{% endfor %}
+		</tr>
+		</thead>
+		<tbody>
+		<div class="add_employee">
+			{%include 'graph/forms.html'%}
+		</div>
+		<a href = "" class="">
+			<button type="button"
+			hx-get="{% url 'graph:add_employee' %}"
+			hx-target="#add_employee"
+			hx-swap="beforeend">Добавить сотрудника</button>
+		</a>
+	
+{% endblock %}
