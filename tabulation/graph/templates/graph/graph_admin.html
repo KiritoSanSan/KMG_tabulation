@@ -1,5 +1,4 @@
-{% extends "admin/base.html" %}
-{% load static %}
+{% extends "admin/base_site.html" %}
 
 {% block extrahead %}
 <link rel="stylesheet" href="{% static 'graph\css\graph_admin.css' %}">
@@ -9,7 +8,10 @@
 {{block.super}}
 {% endblock %}
 
-{% comment %} <div id="site-name"><a href="{% url 'admin:index' %}">{{ site_header|default:_('Админ Панель') }}</a></div> {% endcomment %}
+{% block branding %}
+<div id="site-name"><a href="{% url 'admin:index' %}">Админ Панель</a></div>
+{% endblock %}
+
 {% block content %}
 <div class="results">
   <table class="admin_table">
@@ -89,4 +91,4 @@
   </a>
   <a href='/admin/graph/graph'><button>Назад</button></a>
 {% endblock %}
-{% include 'admin/change_list_results' %}
+{% comment %} {% include 'admin/change_list_results' %} {% endcomment %}

@@ -1,12 +1,14 @@
 {% extends "admin/base_site.html" %}
 {% load static %}
 {% load i18n %}
-
 {% block extrahead %}
 <link rel="stylesheet" href="{% static 'graph\css\graph_admin.css' %}">
 {% endblock %}
 
-{% block header%}Админ Панель{% endblock %}
+{% block branding %}
+<div id="site-name"><a href="{% url 'admin:index' %}">Админ Панель</a></div>
+{% endblock %}
+
 {% block content %}
 {{block.super}}
   	<table class="admin_table">
@@ -79,11 +81,6 @@
 		<button id="add-row-button" type="button" name="_save">Добавить работника</button>
 		{% comment %} <input id="add-row-button" type="submit" value="Добавить работника" class="default"> {% endcomment %}
 		{% comment %} <button class="delete-row-button" type="button">Delete Row</button> {% endcomment %}
-		{% comment %} <select class = "employee_select" name="time_tracking_set-__prefix__-employee_id">
-					<option disabled selected>---------</option>
-					{% for employee in employees_all %}
-						<option type='text' name=employee_{{ employee.tabel_number }} value="{{employee.tabel_number}}">{{employee.tabel_number}}</option>
-					{% endfor %} {% endcomment %}
 		<script>
 			document.addEventListener("DOMContentLoaded", function() {
 				const addRowButton = document.getElementById("add-row-button");
