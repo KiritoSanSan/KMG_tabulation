@@ -1,9 +1,15 @@
 {% extends "admin/base_site.html" %}
+{% load static %}
 {% load i18n %}
+
+{% block extrahead %}
+<link rel="stylesheet" href="{% static 'graph\css\graph_admin.css' %}">
+{% endblock %}
+
 {% block header%}Админ Панель{% endblock %}
 {% block content %}
 {{block.super}}
-  	<table>
+  	<table class="admin_table">
 		<thead>
 		<tr>
 			<td rowspan="2">№№/пп</td>
@@ -23,15 +29,119 @@
 			{% endfor %}
 		</tr>
 		</thead>
-		<tbody>
-		<div class="add_employee">
-			{%include 'graph/forms.html'%}
-		</div>
-		<a href = "" class="">
-			<button type="button"
-			hx-get="{% url 'graph:add_employee' %}"
-			hx-target="#add_employee"
-			hx-swap="beforeend">Добавить сотрудника</button>
-		</a>
-	
+		<tbody id="id_time_tracking_set-group">
+			<form method='POST' action="{% url 'graph:graph_admin_update' %}">
+				{% csrf_token %}
+				<tr><td style="text-align: center;" colspan="100">за {{selected_month}} {{year}}</td></tr>
+				
+				{% for employee in employees %}
+					<tr>
+						<td><a style="color: red; font-size: 17px;" href="/">x</a> {{forloop.counter}}</td>
+						<td>{{employee.surname}} {{employee.name}} {{employee.middlename}}</td>
+						<td>{{employee.job.name}} {{employee.job.description}}</td>
+						<td>{{employee.oil_place}}</td>
+						<td>{{employee.tariff_category}}</td>
+						{% for day in days %}
+							{% for data in time_tracking %}
+								{% if data.employee_id.tabel_number == employee.tabel_number %}
+									{% if data.date.year == year %}
+										{% if data.date.month == month %}
+												{% if data.date.day == day %}
+													{% comment %} <td>{{data.worked_hours}}</td> {% endcomment %}
+													<td><input style = "width: 20px;" type="text" id="timetracking_field" name="worked_hours_{{ data.pk }}_{{day}}_{{employee.tabel_number}}" value="{{ data.worked_hours }}"></td>	
+												{% endif %}
+										{% endif %}
+									{% endif %}
+								{% endif %}
+							{% endfor %}
+						{% endfor %}
+			
+						{% for key, value in calculations.items %}
+							{% if key == employee.name %}
+								{% for calculation in value.values %}
+									{% if calculation == 0 %}
+										<td>0</td>
+									{% else %}
+										<td>{{calculation}}</td>
+									{% endif %}
+								{% endfor %}
+							{% endif %}
+						{% endfor %}
+					</tr>
+				{% endfor %}
+			
+			</tbody>
+			</table>
+			
+			<button type="submit">Сохранить</button>
+			<a href="{% url 'graph:graph_admin' %}"><button>Назад</button></a>
+		</form>
+		<button id="add-row-button" type="button" name="_save">Добавить работника</button>
+		{% comment %} <input id="add-row-button" type="submit" value="Добавить работника" class="default"> {% endcomment %}
+		{% comment %} <button class="delete-row-button" type="button">Delete Row</button> {% endcomment %}
+		{% comment %} <select class = "employee_select" name="time_tracking_set-__prefix__-employee_id">
+					<option disabled selected>---------</option>
+					{% for employee in employees_all %}
+						<option type='text' name=employee_{{ employee.tabel_number }} value="{{employee.tabel_number}}">{{employee.tabel_number}}</option>
+					{% endfor %} {% endcomment %}
+		<script>
+			document.addEventListener("DOMContentLoaded", function() {
+				const addRowButton = document.getElementById("add-row-button");
+				const tableBody = document.getElementById("id_time_tracking_set-group");
+				const csrftoken = '{{ csrf_token }}'
+				addRowButton.addEventListener("click", function() {
+					const newRow = document.createElement("tr");
+					newRow.innerHTML = `
+									<td>{{ forloop.counter }}</td>
+									<td>
+									</select>
+									<input class="employee_select" type="text" name="time_tracking_set-__prefix__-employee_id" list="employee_list">
+										<datalist id="employee_list">
+											{% for employee in employees_all %}
+											<option type="text" name=employee_{{ employee.tabel_number }} value="{{employee.tabel_number}}">
+											{% endfor %}		
+										</datalist>
+									</td>
+									<td><button type="button" class="save-row-button">Сохранить</button></td>
+									<td><button type="button" class="delete-row-button">Отменить</button></td>
+									`;
+					tableBody.appendChild(newRow);
+				});
+				
+				tableBody.addEventListener("click", function(event) {
+					if (event.target.classList.contains("delete-row-button")) {
+						event.target.closest("tr").remove();
+					}
+					else if (event.target.classList.contains("save-row-button")) {
+						const selectElement = event.target.closest("tr").querySelector("select");
+						const selectedOption = selectElement.value;
+		
+						fetch("{% url 'graph:graph_admin_update' %}", {
+							method: "POST",
+							headers: {
+								'Content-Type': 'application/json',
+								'X-CSRFToken': csrftoken,
+							},
+							body: JSON.stringify({ employee_id: selectedOption }),
+						})
+						.then(response => {
+							if (response.ok) {
+								console.log('Option saved successfully');
+								location.replace("{% url 'graph:graph_admin_update' %}")
+							} else {
+								console.error('Error saving option');
+							}
+						})
+						.catch(error => {
+							console.error('Error:', error);
+						});
+						console.log(selectedOption)
+					}
+
+					
+
+				});//
+			});
+		</script>
 {% endblock %}
+

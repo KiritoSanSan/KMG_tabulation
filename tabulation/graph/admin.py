@@ -50,13 +50,13 @@ class GraphAdmin(admin.ModelAdmin):
 
     #Add link to check each graph by pk
     def view_graph_link(self,obj):
-         graph = obj.pk
-         url = (
-              reverse("graph:graph_admin")
-                      +"?"
-                      +urlencode({'graph_pk':graph})
-         )
-         return format_html('<a href={}>{}',url,f"График Вахты №{graph}")
+        graph = obj.pk
+        url = (
+            reverse("graph:graph_admin")
+                    +"?"
+                    +urlencode({'graph_pk':graph})
+        )
+        return format_html('<a href={}>{}',url,f"График Вахты №{graph}")
     view_graph_link.short_description = 'Графики'
 
 @admin.register(OilPlace)
@@ -80,5 +80,9 @@ class TimeTrackingAdmin(admin.ModelAdmin):
                     'worked_hours',
                     'date',
                     )
+        
+@admin.register(GraphEmployeesList)
+class GraphEmployeesListAdmin(admin.ModelAdmin):
+    list_display = ('employee_id', 'graph_id')
 
 

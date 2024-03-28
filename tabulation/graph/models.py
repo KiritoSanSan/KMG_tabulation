@@ -37,9 +37,6 @@ class Job(models.Model):
 
     def __str__(self) -> str:
         return self.name
-    
-    
-    
 
     
 class Employees(models.Model):
@@ -72,10 +69,7 @@ class TimeTracking(models.Model):
 
     def __str__(self) -> str:
         return f"{self.id} {self.employee_id.name} {self.worked_hours}"
-    
-
-    def create(self,validated_data):
-         ...
+        
 
 
 class Attendance(models.Model):
@@ -90,8 +84,6 @@ class Attendance(models.Model):
     def __str__(self) -> str:
         return self.name
     
-
-
 
 class OilPlace(models.Model):
     name = models.CharField(max_length=50, verbose_name = "Название Месторождения",unique=True)

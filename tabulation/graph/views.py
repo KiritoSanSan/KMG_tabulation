@@ -1,4 +1,5 @@
 import calendar
+import json
 from django.urls import NoReverseMatch
 from django.utils.text import capfirst
 
@@ -233,7 +234,7 @@ def graph_admin(request):
         for model_dict in app['models']:
             model = model_dict.get('model')  # Get the model class if it exists
             model_admin = admin_site._registry.get(model)
-            print(model_admin)
+            # print(model_admin)
             if model:
                 app_label = model._meta.app_label
 
@@ -308,6 +309,7 @@ def graph_admin_update(request):
     graph_pk = request.session['chosen_pk']
     graph = Graph.objects.get(pk=graph_pk)
     employees = graph.employees.all()
+    employees_all = Employees.objects.all()
     attendance_full = Attendance.objects.all()
     attendance = Attendance.objects.filter(type="дни явок")
     no_attendance = Attendance.objects.filter(type="дни неявок")
@@ -336,6 +338,20 @@ def graph_admin_update(request):
     days = range(1,num_days+1)
 
     if request.method == 'POST':
+        if request.headers["content-type"].strip().startswith("application/json"):
+            employee_addition_data = json.loads(request.body)
+            employee_tabel_number = employee_addition_data.get('employee_id')
+            empl = Employees.objects.get(pk=employee_tabel_number)
+            for day in days:
+                TimeTracking.objects.create(
+                    employee_id = empl,
+                    date = datetime.datetime(year, month, day),
+                    worked_hours = 0
+                )
+            graph.employees.add(employee_tabel_number)
+            # return redirect(reverse('graph:graph_admin_update') + f'?graph_pk={graph_pk}')
+
+
         for key, value in request.POST.items():
             if key.startswith('worked_hours_'):
                 time_tracking_day = int(key.split('_')[3])  
@@ -367,8 +383,6 @@ def graph_admin_update(request):
     
     tracking = tracking.filter(date__year=int(year)).filter(date__month=int(month))
 
-
-
     #attendance calculation start
     directory = {}
     for employee in employees:
@@ -387,9 +401,8 @@ def graph_admin_update(request):
     #attendance calculation end
     
     employee_form = EmployeeCreateForm()
-
-
     context = {
+        'employees_all': employees_all,
         'graph_pk':graph_pk,
         "year":year,
         "month":month,
@@ -404,10 +417,6 @@ def graph_admin_update(request):
     }
 
     #adding admin side bar start
-
-
-
-
     admin_site = AdminSite()
     available_apps = []
 
@@ -420,7 +429,7 @@ def graph_admin_update(request):
         for model_dict in app['models']:
             model = model_dict.get('model')  # Get the model class if it exists
             model_admin = admin_site._registry.get(model)
-            print(model_admin)
+            # print(model_admin)
             if model:
                 app_label = model._meta.app_label
 
@@ -485,9 +494,6 @@ def graph_admin_update(request):
     admin_context.update(data)
     context.update(admin_context)
 
-    
-
-    
     #adding admin side bar end
     return render(request,'graph/graph_admin_update.html',context)
 

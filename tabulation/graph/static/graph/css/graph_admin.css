@@ -1,0 +1,11 @@
+.admin_table{
+    display: block;
+    overflow-x: auto;
+}
+
+#timetracking_field{
+    background: inherit;
+    border: none;
+}
+
+
