@@ -67,7 +67,6 @@ def sidebar(request):
         for model_dict in app['models']:
             model = model_dict.get('model')  # Get the model class if it exists
             model_admin = admin_site._registry.get(model)
-            print(model_admin)
             if model:
                 app_label = model._meta.app_label
 

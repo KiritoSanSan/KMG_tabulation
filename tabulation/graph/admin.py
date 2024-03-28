@@ -9,7 +9,6 @@ from django.utils.html import format_html
 from django.utils.http import urlencode
 # Register your models here.
 
-
     
 @admin.register(Job)
 class JobAdmin(admin.ModelAdmin):
