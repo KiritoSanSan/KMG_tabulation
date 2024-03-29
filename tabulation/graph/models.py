@@ -48,6 +48,9 @@ class Employees(models.Model):
     job = models.ForeignKey(Job, verbose_name='Работа',related_name='job', on_delete=models.CASCADE)
     oil_place = models.ForeignKey('OilPlace',verbose_name='Месторождение', related_name='reservoir', on_delete=models.CASCADE)
     
+    @property
+    def fullname(self):
+        return f"{self.surname} {self.name} {self.middlename}"
     
     class Meta:
         verbose_name = 'Работник'
@@ -87,7 +90,7 @@ class Attendance(models.Model):
 
 class OilPlace(models.Model):
     name = models.CharField(max_length=50, verbose_name = "Название Месторождения",unique=True)
-    description = models.CharField(max_length=200, verbose_name = "Описание")
+    # description = models.CharField(max_length=200, verbose_name = "Описание")
     
     class Meta:
             verbose_name = 'Месторождение'
@@ -98,7 +101,7 @@ class OilPlace(models.Model):
     
 class Subdivision(models.Model):
     name = models.CharField(max_length=50,verbose_name = "Название Подразделения",unique=True)
-    description = models.CharField(max_length=200, verbose_name = "Описание")
+    # description = models.CharField(max_length=200, verbose_name = "Описание")
     
     class Meta:
         verbose_name = 'Подразделение'

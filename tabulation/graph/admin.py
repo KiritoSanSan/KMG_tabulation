@@ -15,9 +15,9 @@ from django.utils.http import urlencode
 class JobAdmin(admin.ModelAdmin):
     list_display = ('name','description')
 
-@admin.register(Attendance)
-class AttendenceAdmin(admin.ModelAdmin):
-    list_display = ('type','name','description')
+# @admin.register(Attendance)
+# class AttendenceAdmin(admin.ModelAdmin):
+#     list_display = ('type','name','description')
 
 
 class EmployeesInline(admin.TabularInline):
@@ -61,28 +61,27 @@ class GraphAdmin(admin.ModelAdmin):
 
 @admin.register(OilPlace)
 class OilPlaceAdmin(admin.ModelAdmin):
-    list_display = ('name','description')
+    list_display = ('name',)
 
 
 @admin.register(Subdivision)
 class SubdivisionAdmin(admin.ModelAdmin):
-    list_display = ('name','description')
+    list_display = ('name',)
 
 # class TimeTrackingEmployeeInline(admin.TabularInline):
 #      model = TimeTracking.employee_id.through
 #      extra = 1
 
-@admin.register(TimeTracking)
-class TimeTrackingAdmin(admin.ModelAdmin):
-        # inlines = [TimeTrackingEmployeeInline]
-        list_display = (
-                    'employee_id',
-                    'worked_hours',
-                    'date',
-                    )
+# @admin.register(TimeTracking)
+# class TimeTrackingAdmin(admin.ModelAdmin):
+#         list_display = (
+#                     'employee_id',
+#                     'worked_hours',
+#                     'date',
+#                     )
         
-@admin.register(GraphEmployeesList)
-class GraphEmployeesListAdmin(admin.ModelAdmin):
-    list_display = ('employee_id', 'graph_id')
+# @admin.register(GraphEmployeesList)
+# class GraphEmployeesListAdmin(admin.ModelAdmin):
+#     list_display = ('employee_id', 'graph_id')
 
 

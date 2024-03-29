@@ -3,6 +3,7 @@
 {% load i18n %}
 {% block extrahead %}
 <link rel="stylesheet" href="{% static 'graph\css\graph_admin.css' %}">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 {% endblock %}
 
 {% block branding %}
@@ -38,7 +39,7 @@
 				
 				{% for employee in employees %}
 					<tr>
-						<td><a style="color: red; font-size: 17px;" href="/">x</a> {{forloop.counter}}</td>
+						<td><a style="cursor: pointer;" id="delete-row-button" class="deletelink" data-custom-value="{{employee.tabel_number}}"></a> {{forloop.counter}}</td>
 						<td>{{employee.surname}} {{employee.name}} {{employee.middlename}}</td>
 						<td>{{employee.job.name}} {{employee.job.description}}</td>
 						<td>{{employee.oil_place}}</td>
@@ -49,7 +50,6 @@
 									{% if data.date.year == year %}
 										{% if data.date.month == month %}
 												{% if data.date.day == day %}
-													{% comment %} <td>{{data.worked_hours}}</td> {% endcomment %}
 													<td><input style = "width: 20px;" type="text" id="timetracking_field" name="worked_hours_{{ data.pk }}_{{day}}_{{employee.tabel_number}}" value="{{ data.worked_hours }}"></td>	
 												{% endif %}
 										{% endif %}
@@ -75,13 +75,33 @@
 			</tbody>
 			</table>
 			
-			<button type="submit">Сохранить</button>
-			<a href="{% url 'graph:graph_admin' %}"><button>Назад</button></a>
+			<input type="submit" value="Сохранить график" class="default">
+			<a href="{% url 'graph:graph_admin' %}">
+				<input type="button" value="Назад" class="default">
+			</a>
 		</form>
-		<button id="add-row-button" type="button" name="_save">Добавить работника</button>
-		{% comment %} <input id="add-row-button" type="submit" value="Добавить работника" class="default"> {% endcomment %}
-		{% comment %} <button class="delete-row-button" type="button">Delete Row</button> {% endcomment %}
+		<input id="add-row-button" type="button" value="Добавить работника" class="default">
 		<script>
+			$(".deletelink").click(function() {
+				const value = $(this).data("custom-value");
+				const csrftoken = '{{ csrf_token }}'
+				console.log(value)
+				fetch("{% url 'graph:graph_admin_update' %}", {
+					method: "POST",
+					headers: {
+						'Content-Type': 'application/json',
+						'X-CSRFToken': csrftoken,
+					},
+					body: JSON.stringify({ employee_id_delete: value }),
+				})
+
+				.then(response => {
+					location.replace("{% url 'graph:graph_admin_update' %}")
+				})
+				
+				
+			});
+
 			document.addEventListener("DOMContentLoaded", function() {
 				const addRowButton = document.getElementById("add-row-button");
 				const tableBody = document.getElementById("id_time_tracking_set-group");
@@ -91,26 +111,26 @@
 					newRow.innerHTML = `
 									<td>{{ forloop.counter }}</td>
 									<td>
-									</select>
 									<input class="employee_select" type="text" name="time_tracking_set-__prefix__-employee_id" list="employee_list">
 										<datalist id="employee_list">
 											{% for employee in employees_all %}
-											<option type="text" name=employee_{{ employee.tabel_number }} value="{{employee.tabel_number}}">
+											<option type="text" name=employee_{{ employee.tabel_number }} value="{{employee.tabel_number}}">{{employee.fullname}}</option>
 											{% endfor %}		
 										</datalist>
 									</td>
-									<td><button type="button" class="save-row-button">Сохранить</button></td>
-									<td><button type="button" class="delete-row-button">Отменить</button></td>
+									<td><input type="button" value="Добавить" class="save-row-button"></td>
+									<td><input type="button" value="Отменить" class="cancel-row-button"></td>
 									`;
 					tableBody.appendChild(newRow);
 				});
+
 				
 				tableBody.addEventListener("click", function(event) {
-					if (event.target.classList.contains("delete-row-button")) {
+					if (event.target.classList.contains("cancel-row-button")) {
 						event.target.closest("tr").remove();
 					}
 					else if (event.target.classList.contains("save-row-button")) {
-						const selectElement = event.target.closest("tr").querySelector("select");
+						const selectElement = event.target.closest("tr").querySelector(".employee_select");
 						const selectedOption = selectElement.value;
 		
 						fetch("{% url 'graph:graph_admin_update' %}", {

@@ -15,6 +15,7 @@ from django.contrib import admin
 from django.contrib.admin.sites import site
 from django.shortcuts import get_object_or_404, redirect, render
 from .models import *
+from django.db.models import Q
 from django.contrib.admin.options import ModelAdmin
 
 from django.contrib.admin.utils import flatten_fieldsets
@@ -26,6 +27,7 @@ from django.contrib import messages
 from tabel.models import Tabel
 from .forms import *
 from django.core.exceptions import ObjectDoesNotExist
+
 
 # Create your views here.
 
@@ -68,7 +70,7 @@ def sidebar(request):
         for model_dict in app['models']:
             model = model_dict.get('model')  # Get the model class if it exists
             model_admin = admin_site._registry.get(model)
-            print(model_admin)
+            # print(model_admin)
             if model:
                 app_label = model._meta.app_label
 
@@ -299,6 +301,7 @@ def graph_admin(request):
     return render(request,'graph/graph_admin.html',context)
 
 def graph_admin_update(request):
+    search_text = request.POST.get('time_tracking_set-prefix-employee_id')
     graph_pk = request.session['chosen_pk']
     graph = Graph.objects.get(pk=graph_pk)
     employees = graph.employees.all()
@@ -307,8 +310,22 @@ def graph_admin_update(request):
     attendance = Attendance.objects.filter(type="дни явок")
     no_attendance = Attendance.objects.filter(type="дни неявок")
     tracking = TimeTracking.objects.all()
-    month = graph.month
-    year = graph.year
+    month = int(graph.month)
+    year = int(graph.year)
+    
+    try:
+        search_employee = Employees.objects.filter(
+            Q(tabel_number__icontains=search_text) |
+            Q(name__icontains=search_text)| 
+            Q(surname__icontains=search_text) | 
+            Q(middlename__icontains=search_text)).exclude(
+            tabel_number__in=employees.values_list('tabel_number', flat=True)
+            )
+    except:
+        search_employee = Employees.objects.filter().exclude(
+            tabel_number__in=employees.values_list('tabel_number', flat=True)
+)
+
     if month and month is not None:
         filter_month = int(month)
         tracking = TimeTracking.objects.filter(employee_id__in = employees.values_list('tabel_number',flat=True))
@@ -329,20 +346,30 @@ def graph_admin_update(request):
         year = date.year
     num_days = calendar.monthrange(int(year),int(month))[1]
     days = range(1,num_days+1)
+    # print(request.body.decode('utf-8'))
 
     if request.method == 'POST':
         if request.headers["content-type"].strip().startswith("application/json"):
-            employee_addition_data = json.loads(request.body)
-            employee_tabel_number = employee_addition_data.get('employee_id')
-            empl = Employees.objects.get(pk=employee_tabel_number)
-            for day in days:
-                TimeTracking.objects.create(
-                    employee_id = empl,
-                    date = datetime.datetime(year, month, day),
-                    worked_hours = 0
-                )
-            graph.employees.add(employee_tabel_number)
-            # return redirect(reverse('graph:graph_admin_update') + f'?graph_pk={graph_pk}')
+            if "employee_id_delete" in request.body.decode('utf-8'):
+                employee_deletion_data = json.loads(request.body)
+                employee_tabel_number = employee_deletion_data.get('employee_id_delete')
+                empl = Employees.objects.get(pk=employee_tabel_number)
+                # print(empl)
+                # print(employee_tabel_number)
+                graph.employees.remove(empl)
+                TimeTracking.objects.filter(employee_id = employee_tabel_number).delete()
+                    
+            if "employee_id" in request.body.decode('utf-8'):
+                employee_addition_data = json.loads(request.body)
+                employee_tabel_number = employee_addition_data.get('employee_id')
+                empl = Employees.objects.get(pk=employee_tabel_number)
+                for day in days:
+                    TimeTracking.objects.create(
+                        employee_id = empl,
+                        date = datetime.datetime(year, month, day),
+                        worked_hours = 0
+                    )
+                graph.employees.add(employee_tabel_number)
 
 
         for key, value in request.POST.items():
@@ -395,7 +422,7 @@ def graph_admin_update(request):
     
     employee_form = EmployeeCreateForm()
     context = {
-        'employees_all': employees_all,
+        'employees_all': search_employee,
         'graph_pk':graph_pk,
         "year":year,
         "month":month,
