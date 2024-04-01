@@ -199,7 +199,7 @@ def graph_admin(request):
     #soglasovat' graphik
     if request.method == 'POST':
         # Check if the submitted form contains the key 'soglasovat'
-        if 'soglasovat' in request.POST:
+        if 'approve_graph' in request.POST:
             graph_pk = request.POST.get('graph_pk')
             graph_inst = Graph.objects.get(pk=graph_pk)
             # Create a Tabel instance with data from the chosen graph

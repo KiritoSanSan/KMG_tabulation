@@ -15,9 +15,9 @@ from django.utils.http import urlencode
 class JobAdmin(admin.ModelAdmin):
     list_display = ('name','description')
 
-# @admin.register(Attendance)
-# class AttendenceAdmin(admin.ModelAdmin):
-#     list_display = ('type','name','description')
+@admin.register(Attendance)
+class AttendenceAdmin(admin.ModelAdmin):
+    list_display = ('type','name','description')
 
 
 class EmployeesInline(admin.TabularInline):

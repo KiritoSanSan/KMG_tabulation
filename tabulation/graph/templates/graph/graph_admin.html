@@ -81,16 +81,18 @@
     }
   </script>
 
-  {% comment %} <form method="post" action="/graph-admin/?graph_pk={{graph_pk}}" name='soglasovat' onsubmit="return confirmSubmit();">
-    {% csrf_token %}
-    <input type="hidden" name="graph_pk" value="{{ graph_pk }}">
-    <button type="submit" name="soglasovat">Согласовать</button>
-  </form> {% endcomment %}
-
   <a href="{% url 'graph:graph_admin_update' %}">
     <input type="submit" value="Редактировать" class="default">
   </a>
+  
   <a href="/admin/graph/graph">
     <input type="button" value="Назад" class="default">
   </a>
-{% endblock %}
+  
+  <form style="width: 10%;" method="post" action="/graph-admin/?graph_pk={{graph_pk}}" name='soglasovat' onsubmit="return confirmSubmit();">
+    {% csrf_token %}
+    <input type="hidden" name="graph_pk" value="{{ graph_pk }}">
+    <input type="submit" value="Согласовать" name="approve_graph" class="default">
+  </form>
+  
+  {% endblock %}
