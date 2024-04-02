@@ -305,8 +305,7 @@ def graph_admin_update(request):
     graph_pk = request.session['chosen_pk']
     graph = Graph.objects.get(pk=graph_pk)
     employees = graph.employees.all()
-    employees_all = Employees.objects.all()
-    attendance_full = Attendance.objects.all()
+    attendance_all = Attendance.objects.all()
     attendance = Attendance.objects.filter(type="дни явок")
     no_attendance = Attendance.objects.filter(type="дни неявок")
     tracking = TimeTracking.objects.all()
@@ -324,7 +323,7 @@ def graph_admin_update(request):
     except:
         search_employee = Employees.objects.filter().exclude(
             tabel_number__in=employees.values_list('tabel_number', flat=True)
-)
+        )
 
     if month and month is not None:
         filter_month = int(month)
@@ -367,12 +366,13 @@ def graph_admin_update(request):
                     TimeTracking.objects.create(
                         employee_id = empl,
                         date = datetime.datetime(year, month, day),
-                        worked_hours = 0
+                        worked_hours = ''
                     )
                 graph.employees.add(employee_tabel_number)
 
 
         for key, value in request.POST.items():
+            # print(request.POST)
             if key.startswith('worked_hours_'):
                 time_tracking_day = int(key.split('_')[3])  
                 key_parts = key.split('_')
@@ -430,19 +430,14 @@ def graph_admin_update(request):
         "selected_month": name_month_ru,
         'employees':employees,
         'attendance': attendance, 
+        'attendance_all': attendance_all,
         'no_attendance': no_attendance,
         'time_tracking': tracking,
         'graph':graph,
         'calculations': directory,
     }
     context.update(sidebar(request))
-    #adding admin side bar start
 
-
-    
-
-    
-    #adding admin side bar end
     return render(request,'graph/graph_admin_update.html',context)
 
 

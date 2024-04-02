@@ -1,6 +1,14 @@
+.vertical {
+    writing-mode: vertical-rl;
+    text-align: center;
+    white-space: nowrap;
+    transform: rotate(180deg);
+}
+
 .admin_table{
     display: block;
     overflow-x: auto;
+
 }
 
 .admin_table td{
@@ -11,5 +19,3 @@
     background: inherit;
     /* border: none; */
 }
-
-

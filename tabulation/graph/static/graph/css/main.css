@@ -24,12 +24,12 @@ td{
 }
 
 
-.vertical {
+/* .vertical {
     writing-mode: vertical-rl;
     text-align: center;
     white-space: nowrap;
     transform: rotate(180deg);
-}
+} */
 
 .navbar_home{
     display: flex;

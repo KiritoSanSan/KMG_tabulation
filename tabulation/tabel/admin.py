@@ -50,8 +50,7 @@ class AdminTabel(admin.ModelAdmin):
                       +"?"
                       +urlencode({'tabel_pk':tabel})
          )
-         return format_html('<a href={}>{}',url,f"Согласованный График {tabel}" )
+         return format_html('<a href={}>{}',url,f"Согласованный Табель {tabel}" )
     view_tabel_link.short_description = 'Табели'
-
 
 

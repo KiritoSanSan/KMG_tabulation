@@ -60,6 +60,8 @@
       </tr>  
     </thead>
     <tbody>
+      <form method='POST' action="{% url 'tabel:tabel_admin_update' %}">
+      {% csrf_token %}
       {% for employee in employees %}
         <tr>
           <td> {{ forloop.counter }} </td>
@@ -74,7 +76,9 @@
                 {% if data.date.month == month %}
                   {% if data.date.day == day %}
                     {% if data.employee_id.tabel_number == employee.tabel_number %}
-                      <td>{{data.worked_hours}}</td>
+                      {% comment %} <td>{{data.worked_hours}}</td> {% endcomment %}
+                      <td><input style = "width: 40px;" type="text" name="worked_hours_{{ data.pk }}_{{day}}_{{employee.tabel_number}}" value="{{data.worked_hours}}"></td>
+                      {% comment %} <td><input style = "width: 40px;" type="text" name="worked_hours_{{ data.pk }}_{{day}}_{{employee.tabel_number}}" value="{{data.worked_hours}}" list="attendance_list"></td> {% endcomment %}
                     {% endif %}
                   {% endif %}
                 {% endif %}
@@ -107,17 +111,16 @@
           <td></td>
           <td></td>
           <!--!-->
-        </tr>
-          
+        </tr>  
       {% endfor %}
     </tbody>
   </table>
-  <a href="{% url 'tabel:tabel_admin_update' %}">
-    <input type="submit" value="Редактировать" class="default">
-  </a>
 
-  
-  <a href="/admin/tabel/tabel">
+  <input type="submit" value="Сохранить график" class="default">
+
+  <a href="{% url 'tabel:tabel_admin' %}">
     <input type="button" value="Назад" class="default">
   </a>
+</form>
+
 {% endblock content %}
