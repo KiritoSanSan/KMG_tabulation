@@ -37,9 +37,6 @@ class Job(models.Model):
 
     def __str__(self) -> str:
         return self.name
-    
-    
-    
 
     
 class Employees(models.Model):
@@ -51,6 +48,9 @@ class Employees(models.Model):
     job = models.ForeignKey(Job, verbose_name='Работа',related_name='job', on_delete=models.CASCADE)
     oil_place = models.ForeignKey('OilPlace',verbose_name='Месторождение', related_name='reservoir', on_delete=models.CASCADE)
     
+    @property
+    def fullname(self):
+        return f"{self.surname} {self.name} {self.middlename}"
     
     class Meta:
         verbose_name = 'Работник'
@@ -72,10 +72,7 @@ class TimeTracking(models.Model):
 
     def __str__(self) -> str:
         return f"{self.id} {self.employee_id.name} {self.worked_hours}"
-    
-
-    def create(self,validated_data):
-         ...
+        
 
 
 class Attendance(models.Model):
@@ -91,11 +88,9 @@ class Attendance(models.Model):
         return self.name
     
 
-
-
 class OilPlace(models.Model):
     name = models.CharField(max_length=50, verbose_name = "Название Месторождения",unique=True)
-    description = models.CharField(max_length=200, verbose_name = "Описание")
+    # description = models.CharField(max_length=200, verbose_name = "Описание")
     
     class Meta:
             verbose_name = 'Месторождение'
@@ -106,7 +101,7 @@ class OilPlace(models.Model):
     
 class Subdivision(models.Model):
     name = models.CharField(max_length=50,verbose_name = "Название Подразделения",unique=True)
-    description = models.CharField(max_length=200, verbose_name = "Описание")
+    # description = models.CharField(max_length=200, verbose_name = "Описание")
     
     class Meta:
         verbose_name = 'Подразделение'

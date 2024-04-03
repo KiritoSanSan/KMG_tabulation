@@ -19,9 +19,9 @@ class AttendenceAdmin(admin.ModelAdmin):
     list_display = ('type','name','description')
 
 
-class EmployeesInline(admin.TabularInline):
-    model = Graph.employees.through
-    extra = 1
+# class EmployeesInline(admin.TabularInline):
+#     model = Graph.employees.through
+#     extra = 1
 
 
 @admin.register(Employees)
@@ -35,7 +35,7 @@ class EmployeesAdmin(admin.ModelAdmin):
 
 @admin.register(Graph)
 class GraphAdmin(admin.ModelAdmin):
-    inlines = [EmployeesInline]
+    # inlines = [EmployeesInline]
     list_display = ('id',
                     'reservoir',
                     'subdivision',
@@ -49,35 +49,38 @@ class GraphAdmin(admin.ModelAdmin):
 
     #Add link to check each graph by pk
     def view_graph_link(self,obj):
-         graph = obj.pk
-         url = (
-              reverse("graph:graph_admin")
-                      +"?"
-                      +urlencode({'graph_pk':graph})
-         )
-         return format_html('<a href={}>{}',url,f"График Вахты №{graph}")
+        graph = obj.pk
+        url = (
+            reverse("graph:graph_admin")
+                    +"?"
+                    +urlencode({'graph_pk':graph})
+        )
+        return format_html('<a href={}>{}',url,f"График Вахты №{graph}")
     view_graph_link.short_description = 'Графики'
 
 @admin.register(OilPlace)
 class OilPlaceAdmin(admin.ModelAdmin):
-    list_display = ('name','description')
+    list_display = ('name',)
 
 
 @admin.register(Subdivision)
 class SubdivisionAdmin(admin.ModelAdmin):
-    list_display = ('name','description')
+    list_display = ('name',)
 
 # class TimeTrackingEmployeeInline(admin.TabularInline):
 #      model = TimeTracking.employee_id.through
 #      extra = 1
 
-@admin.register(TimeTracking)
-class TimeTrackingAdmin(admin.ModelAdmin):
-        # inlines = [TimeTrackingEmployeeInline]
-        list_display = (
-                    'employee_id',
-                    'worked_hours',
-                    'date',
-                    )
+# @admin.register(TimeTracking)
+# class TimeTrackingAdmin(admin.ModelAdmin):
+#         list_display = (
+#                     'employee_id',
+#                     'worked_hours',
+#                     'date',
+#                     )
+        
+# @admin.register(GraphEmployeesList)
+# class GraphEmployeesListAdmin(admin.ModelAdmin):
+#     list_display = ('employee_id', 'graph_id')
 
 

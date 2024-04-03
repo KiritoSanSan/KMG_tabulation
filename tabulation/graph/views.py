@@ -1,4 +1,5 @@
 import calendar
+import json
 from django.urls import NoReverseMatch
 from django.utils.text import capfirst
 
@@ -14,6 +15,7 @@ from django.contrib import admin
 from django.contrib.admin.sites import site
 from django.shortcuts import get_object_or_404, redirect, render
 from .models import *
+from django.db.models import Q
 from django.contrib.admin.options import ModelAdmin
 
 from django.contrib.admin.utils import flatten_fieldsets
@@ -25,6 +27,7 @@ from django.contrib import messages
 from tabel.models import Tabel
 from .forms import *
 from django.core.exceptions import ObjectDoesNotExist
+
 
 # Create your views here.
 
@@ -67,6 +70,7 @@ def sidebar(request):
         for model_dict in app['models']:
             model = model_dict.get('model')  # Get the model class if it exists
             model_admin = admin_site._registry.get(model)
+            # print(model_admin)
             if model:
                 app_label = model._meta.app_label
 
@@ -195,7 +199,7 @@ def graph_admin(request):
     #soglasovat' graphik
     if request.method == 'POST':
         # Check if the submitted form contains the key 'soglasovat'
-        if 'soglasovat' in request.POST:
+        if 'approve_graph' in request.POST:
             graph_pk = request.POST.get('graph_pk')
             graph_inst = Graph.objects.get(pk=graph_pk)
             # Create a Tabel instance with data from the chosen graph
@@ -294,19 +298,34 @@ def graph_admin(request):
     }
     #adding admin side bar start
     context.update(sidebar(request))
-    #adding admin side bar end
     return render(request,'graph/graph_admin.html',context)
 
 def graph_admin_update(request):
+    search_text = request.POST.get('time_tracking_set-prefix-employee_id')
     graph_pk = request.session['chosen_pk']
     graph = Graph.objects.get(pk=graph_pk)
     employees = graph.employees.all()
+    employees_all = Employees.objects.all()
     attendance_full = Attendance.objects.all()
     attendance = Attendance.objects.filter(type="дни явок")
     no_attendance = Attendance.objects.filter(type="дни неявок")
     tracking = TimeTracking.objects.all()
-    month = graph.month
-    year = graph.year
+    month = int(graph.month)
+    year = int(graph.year)
+    
+    try:
+        search_employee = Employees.objects.filter(
+            Q(tabel_number__icontains=search_text) |
+            Q(name__icontains=search_text)| 
+            Q(surname__icontains=search_text) | 
+            Q(middlename__icontains=search_text)).exclude(
+            tabel_number__in=employees.values_list('tabel_number', flat=True)
+            )
+    except:
+        search_employee = Employees.objects.filter().exclude(
+            tabel_number__in=employees.values_list('tabel_number', flat=True)
+)
+
     if month and month is not None:
         filter_month = int(month)
         tracking = TimeTracking.objects.filter(employee_id__in = employees.values_list('tabel_number',flat=True))
@@ -327,8 +346,32 @@ def graph_admin_update(request):
         year = date.year
     num_days = calendar.monthrange(int(year),int(month))[1]
     days = range(1,num_days+1)
+    # print(request.body.decode('utf-8'))
 
     if request.method == 'POST':
+        if request.headers["content-type"].strip().startswith("application/json"):
+            if "employee_id_delete" in request.body.decode('utf-8'):
+                employee_deletion_data = json.loads(request.body)
+                employee_tabel_number = employee_deletion_data.get('employee_id_delete')
+                empl = Employees.objects.get(pk=employee_tabel_number)
+                # print(empl)
+                # print(employee_tabel_number)
+                graph.employees.remove(empl)
+                TimeTracking.objects.filter(employee_id = employee_tabel_number).delete()
+                    
+            if "employee_id" in request.body.decode('utf-8'):
+                employee_addition_data = json.loads(request.body)
+                employee_tabel_number = employee_addition_data.get('employee_id')
+                empl = Employees.objects.get(pk=employee_tabel_number)
+                for day in days:
+                    TimeTracking.objects.create(
+                        employee_id = empl,
+                        date = datetime.datetime(year, month, day),
+                        worked_hours = 0
+                    )
+                graph.employees.add(employee_tabel_number)
+
+
         for key, value in request.POST.items():
             if key.startswith('worked_hours_'):
                 time_tracking_day = int(key.split('_')[3])  
@@ -360,8 +403,6 @@ def graph_admin_update(request):
     
     tracking = tracking.filter(date__year=int(year)).filter(date__month=int(month))
 
-
-
     #attendance calculation start
     directory = {}
     for employee in employees:
@@ -379,36 +420,31 @@ def graph_admin_update(request):
     
     #attendance calculation end
     
-    employee_form = EmployeeCreateForm()
-
-
     context = {
+        'employees_all': search_employee,
         'graph_pk':graph_pk,
         "year":year,
         "month":month,
         'days':days,
         "selected_month": name_month_ru,
         'employees':employees,
-        'attendance': attendance, 
+        'attendance': attendance,
+        'attendance_full':attendance_full, 
         'no_attendance': no_attendance,
         'time_tracking': tracking,
         'graph':graph,
         'calculations': directory,
     }
-
+    
     #adding admin side bar start
+
 
     context.update(sidebar(request))
 
+    
     #adding admin side bar end
     return render(request,'graph/graph_admin_update.html',context)
 
-
-def add_employee(request):
-    if request.method == 'POST':
-        pass
-
-    return render(request,'graph/graph_admin_update.html',{"form":EmployeeCreateForm})
 
 
 
