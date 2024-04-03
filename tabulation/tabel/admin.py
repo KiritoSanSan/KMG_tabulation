@@ -25,7 +25,7 @@ class EmployeesInline(admin.TabularInline):
 
 @admin.register(Tabel)
 class AdminTabel(admin.ModelAdmin):
-    inlines = [EmployeesInline]
+    # inlines = [EmployeesInline]
     readonly_fields = ('id',
                     'reservoir',
                     'subdivision',
@@ -50,8 +50,7 @@ class AdminTabel(admin.ModelAdmin):
                       +"?"
                       +urlencode({'tabel_pk':tabel})
          )
-         return format_html('<a href={}>{}',url,f"Согласованный График {tabel}" )
+         return format_html('<a href={}>{}',url,f"Согласованный Табель {tabel}" )
     view_tabel_link.short_description = 'Табели'
-
 
 

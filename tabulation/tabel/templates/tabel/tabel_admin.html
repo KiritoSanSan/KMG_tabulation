@@ -2,26 +2,18 @@
 {% load static %}
 
 {% block extrahead %}
-<link rel="stylesheet" href="{% static 'graph\css\graph_admin.css' %}">
-{% endblock %}
-
-{% block additional_scripts %}
-{{block.super}}
+<link rel="stylesheet" href="{% static 'tabel\css\tabel_admin.css' %}">
 {% endblock %}
 
 {% block branding %}
 <div id="site-name"><a href="{% url 'admin:index' %}">Админ Панель</a></div>
 {% endblock %}
-
 {% block content %}
-<h1>Табель {{tabel.subdivision}} {{tabel.reservoir}} {{selected_month}} {{tabel.year}}</h1>
-
-<div class="results">
   <table class="admin_table">
-    <tbody>
+    <thead>
       <tr>
         <td colspan="5_{{forloop.counter}}"></td>
-        <td colspan="100" style="text-align: center;">за {{selected_month}}</td>    
+        <td colspan="100">за {{selected_month}}</td>    
       </tr>
       <tr>
         <td rowspan="3">№№/пп</td>
@@ -56,7 +48,6 @@
         <td colspan="2">во вредных условиях труда</td>
       </tr>
       <tr>
-        
         {% for a in attendance %}
           <td class='vertical'>{{a.description}}</td>
         {% endfor %}
@@ -69,6 +60,8 @@
         <td class='vertical'>Перерывы для кормления ребенка</td>
         <td class='vertical'>Время перерыва отдыха и приема пищи</td> 
       </tr>  
+    </thead>
+    <tbody>
       {% for employee in employees %}
         <tr>
           <td> {{ forloop.counter }} </td>
@@ -77,20 +70,19 @@
           <td> {{ employee.job.name }} {{ employee.job.description }}</td>
           <td> {{ employee.tariff_category}} </td>  
           
-          {%for day in days%}
-        {% for data in time_tracking %}
-          {%if data.date.year == year%}
-            {%if data.date.month == month%}
-              {%if data.date.day == day%}
-              
-                  {% if data.employee_id.tabel_number == employee.tabel_number %}
-                    <td>{{data.worked_hours}}</td>
+          {% for day in days %}
+            {% for data in time_tracking %}
+              {% if data.date.year == year %}
+                {% if data.date.month == month %}
+                  {% if data.date.day == day %}
+                    {% if data.employee_id.tabel_number == employee.tabel_number %}
+                      <td>{{data.worked_hours}}</td>
+                    {% endif %}
                   {% endif %}
-                {%endif%}
-              {%endif%}
-            {%endif%}
+                {% endif %}
+              {% endif %}
             {% endfor %}
-      {% endfor %}
+          {% endfor %}
           <!--!-->
           {% for key, value in calculations.items %}
             {% if key == employee.name %}
@@ -100,7 +92,6 @@
                 {% else %}
                   <td>{{v}}</td>
                 {% endif %}
-                
               {% endfor %}
             {% endif %}
           {% endfor %}
@@ -120,16 +111,15 @@
           <!--!-->
         </tr>
           
-  {% endfor %}
-
-      
+      {% endfor %}
     </tbody>
   </table>
-</div>
-<a href="{% url 'tabel:tabel_admin_update' %}">
-  <input type="submit" value="Редактировать" class="default">
-</a>
-<a href="/admin/tabel/tabel">
-  <input type="button" value="Назад" class="default">
-</a>
+  <a href="{% url 'tabel:tabel_admin_update' %}">
+    <input type="submit" value="Редактировать" class="default">
+  </a>
+
+  
+  <a href="/admin/tabel/tabel">
+    <input type="button" value="Назад" class="default">
+  </a>
 {% endblock content %}

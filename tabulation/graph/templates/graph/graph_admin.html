@@ -53,7 +53,11 @@
                 {% if data.date.month == month %}
                   {% if data.employee_id.tabel_number == employee.tabel_number %}
                     {% if data.date.day == day %}
+                      {% if data.worked_hours == '' %}
+                        <td>0</td>
+                      {% else %}
                         <td>{{data.worked_hours}}</td>
+                      {% endif %}
                     {% endif %}
                   {% endif %}
                 {% endif %}
@@ -76,7 +80,7 @@
       {% endfor %}
     </tbody>
   </table>
-</div>
+
   <script>
     function confirmSubmit() {
       return confirm("Вы уверены, что хотите согласовать?");
@@ -91,7 +95,7 @@
     <input type="button" value="Назад" class="default">
   </a>
   
-  <form style="width: 10%;" method="post" action="/graph-admin/?graph_pk={{graph_pk}}" name='soglasovat' onsubmit="return confirmSubmit();">
+  <form style="width: 10%;" method="post" action="/graph_admin?graph_pk={{graph_pk}}" name='soglasovat' onsubmit="return confirmSubmit();">
     {% csrf_token %}
     <input type="hidden" name="graph_pk" value="{{ graph_pk }}">
     <input type="submit" value="Согласовать" name="approve_graph" class="default">

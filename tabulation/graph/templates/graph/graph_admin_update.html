@@ -51,7 +51,19 @@
 									{% if data.date.year == year %}
 										{% if data.date.month == month %}
 												{% if data.date.day == day %}
-													<td><input style = "width: 20px;" type="text" id="timetracking_field" name="worked_hours_{{ data.pk }}_{{day}}_{{employee.tabel_number}}" value="{{ data.worked_hours }}"></td>	
+													{% if data.worked_hours == '' %}
+														<td><input style = "width: 40px;" type="text" name="worked_hours_{{ data.pk }}_{{day}}_{{employee.tabel_number}}" list="attendance_list"></td>
+														{% comment %} <td><input style = "width: 20px;" type="text" id="timetracking_field" name="worked_hours_{{ data.pk }}_{{day}}_{{employee.tabel_number}}" value="{{ data.worked_hours }}"></td>	 {% endcomment %}
+														
+													{% else %}
+														<td><input style = "width: 40px;" type="text" name="worked_hours_{{ data.pk }}_{{day}}_{{employee.tabel_number}}" value="{{data.worked_hours}}" list="attendance_list"></td>
+														{% comment %} <td><input style = "width: 20px;" type="text" id="timetracking_field" name="worked_hours_{{ data.pk }}_{{day}}_{{employee.tabel_number}}" value="{{ data.worked_hours }}"></td>	 {% endcomment %}
+													{% endif %}
+													<datalist id="attendance_list">
+														{% for attend in attendance_full %}
+															<option value="{{attend.name}}">														
+														{% endfor %}
+													</datalist>
 												{% endif %}
 										{% endif %}
 									{% endif %}
@@ -112,7 +124,7 @@
 					newRow.innerHTML = `
 									<td>{{ forloop.counter }}</td>
 									<td>
-									<input class="employee_select" type="text" name="time_tracking_set-__prefix__-employee_id" list="employee_list">
+									<input class="employee_select" type="text" list="employee_list">
 										<datalist id="employee_list">
 											{% for employee in employees_all %}
 											<option type="text" name=employee_{{ employee.tabel_number }} value="{{employee.tabel_number}}">{{employee.fullname}}</option>
