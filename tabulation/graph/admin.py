@@ -19,12 +19,6 @@ class JobAdmin(admin.ModelAdmin):
 class AttendenceAdmin(admin.ModelAdmin):
     list_display = ('type','name','description')
 
-
-class EmployeesInline(admin.TabularInline):
-    model = Graph.employees.through
-    extra = 1
-
-
 @admin.register(Employees)
 class EmployeesAdmin(admin.ModelAdmin):
     list_display = ('tabel_number',
@@ -36,7 +30,6 @@ class EmployeesAdmin(admin.ModelAdmin):
 
 @admin.register(Graph)
 class GraphAdmin(admin.ModelAdmin):
-    inlines = [EmployeesInline]
     list_display = ('id',
                     'reservoir',
                     'subdivision',

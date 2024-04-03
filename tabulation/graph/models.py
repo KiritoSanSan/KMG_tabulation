@@ -24,8 +24,8 @@ YEARS_CHOICES = (
     ('2025','2025')
 )
 ATTENDACE_CHOICES = (
-    ('дни неявок',"Дни Неявок"),
-    ("дни явок","Дни Явок")
+    ("дни явок","Дни Явок"),
+    ('дни неявок',"Дни Неявок")
 )
 class Job(models.Model):
     name = models.CharField(max_length = 100, verbose_name = "Название",unique=True)
@@ -93,8 +93,8 @@ class OilPlace(models.Model):
     # description = models.CharField(max_length=200, verbose_name = "Описание")
     
     class Meta:
-            verbose_name = 'Месторождение'
-            verbose_name_plural = "Месторождения"
+        verbose_name = 'Месторождение'
+        verbose_name_plural = "Месторождения"
     
     def __str__(self) -> str:
         return self.name
@@ -117,11 +117,10 @@ class Graph(models.Model):
     year = models.CharField(verbose_name = 'Год',choices=YEARS_CHOICES,max_length=4,default=None)
     employees = models.ManyToManyField(Employees,through="GraphEmployeesList",related_name='graph_employee',verbose_name='Работники')
              
-    
     class Meta:
-            verbose_name = 'График'
-            verbose_name_plural = "Графики"
-            unique_together = ('reservoir', 'subdivision','month','year')
+        verbose_name = 'График'
+        verbose_name_plural = "Графики"
+        unique_together = ('reservoir', 'subdivision','month','year')
 
 
     def __str__(self) -> str:

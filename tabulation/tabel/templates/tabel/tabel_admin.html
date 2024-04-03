@@ -5,13 +5,25 @@
 <link rel="stylesheet" href="{% static 'tabel\css\tabel_admin.css' %}">
 {% endblock %}
 
-<div id="site-name"><a href="{% url 'admin:index' %}">{{ site_header|default:_('Админ Панель') }}</a></div>
+{% block branding %}
+  <h1 id="site-name">Админ Панель</h1>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">Начало</a>
+  &rsaquo; <a href="/admin/tabel/">Tabel</a>
+  &rsaquo; <a href="/admin/tabel/tabel">Табеля</a>
+  &rsaquo; <a>Табель {{tabel.subdivision}} {{tabel.reservoir}} за {{selected_month}} {{year}}</a>
+</div>
+{% endblock %}
+
 {% block content %}
   <table class="admin_table">
     <thead>
       <tr>
         <td colspan="5_{{forloop.counter}}"></td>
-        <td colspan="100">за {{selected_month}}</td>    
+        <td colspan="100">за {{selected_month}} {{year}}</td>    
       </tr>
       <tr>
         <td rowspan="3">№№/пп</td>
@@ -74,7 +86,12 @@
                 {% if data.date.month == month %}
                   {% if data.date.day == day %}
                     {% if data.employee_id.tabel_number == employee.tabel_number %}
-                      <td>{{data.worked_hours}}</td>
+                      {% comment %} <td>{{data.worked_hours}}</td> {% endcomment %}
+                      {% if data.worked_hours == '' %}
+                        <td>0</td>
+                      {% else %}
+                        <td>{{data.worked_hours}}</td>
+                      {% endif %}
                     {% endif %}
                   {% endif %}
                 {% endif %}

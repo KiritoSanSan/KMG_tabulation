@@ -53,4 +53,6 @@ class AdminTabel(admin.ModelAdmin):
          return format_html('<a href={}>{}',url,f"Согласованный Табель {tabel}" )
     view_tabel_link.short_description = 'Табели'
 
-
+@admin.register(TimeTrackingTabel)
+class TimeTrackingTabelAdmin(admin.ModelAdmin):
+    list_display = ('employee_id', 'worked_hours', 'date')

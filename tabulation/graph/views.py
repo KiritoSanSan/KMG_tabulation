@@ -27,7 +27,7 @@ from django.contrib import messages
 from tabel.models import Tabel
 from .forms import *
 from django.core.exceptions import ObjectDoesNotExist
-
+from tabel.models import TimeTrackingTabel
 
 # Create your views here.
 
@@ -198,7 +198,7 @@ def graph_admin(request):
         
     #soglasovat' graphik
     if request.method == 'POST':
-        # Check if the submitted form contains the key 'soglasovat'
+        # Check if the submitted form contains the key 'approve_graph'
         if 'approve_graph' in request.POST:
             graph_pk = request.POST.get('graph_pk')
             graph_inst = Graph.objects.get(pk=graph_pk)
@@ -222,12 +222,20 @@ def graph_admin(request):
                     month=graph_inst.month,
                     year=graph_inst.year,
                 )
+
+                for employee in employees_graph:
+                    time_tracking = TimeTracking.objects.filter(employee_id=employee).values()
+                    employee_instance = Employees.objects.get(pk=employee.tabel_number)
+                    for value in time_tracking:
+                        TimeTrackingTabel.objects.create(
+                            employee_id = employee_instance,
+                            date = value['date'],
+                            worked_hours = value['worked_hours']
+                        )
                 # Set the many-to-many relationship using the .set() method
                 tabel_instance.employees.set(employees_graph)
                 messages.success(request,'Табель согласован')
                 return redirect('admin:tabel_tabel_changelist')
-
-
 
     graph_pk = request.session['chosen_pk']  
     graph = Graph.objects.get(pk=graph_pk)
