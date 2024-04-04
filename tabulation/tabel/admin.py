@@ -53,4 +53,37 @@ class AdminTabel(admin.ModelAdmin):
          return format_html('<a href={}>{}',url,f"Согласованный Табель {tabel}" )
     view_tabel_link.short_description = 'Табели'
 
+@admin.register(TimeTrackingTabel)
+class TimeTrackingTabelAdmin(admin.ModelAdmin):
+    list_display = ('employee_id', 'worked_hours', 'date')
 
+
+@admin.register(TabelApproved)
+class AdminTabelApproved(admin.ModelAdmin):
+    # inlines = [EmployeesInline]
+    readonly_fields = ('id',
+                    'reservoir',
+                    'subdivision',
+                    'month',
+                    'year',
+                    )
+    list_display = ('id',
+                    'reservoir',
+                    'subdivision',
+                    'month',
+                    'year',
+                    'view_tabel_link',
+                    )
+    list_filter = ('reservoir',
+                   'year',
+                   'subdivision')
+    
+    def view_tabel_link(self,obj):
+         tabel = obj.pk
+         url = (
+              reverse("tabel:tabel_approved_admin")
+                      +"?"
+                      +urlencode({'tabel_pk':tabel})
+         )
+         return format_html('<a href={}>{}',url,f"Окончательный Табель {tabel}" )
+    view_tabel_link.short_description = 'Табели'

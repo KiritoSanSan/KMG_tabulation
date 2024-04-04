@@ -10,7 +10,16 @@
 {% endblock %}
 
 {% block branding %}
-<div id="site-name"><a href="{% url 'admin:index' %}">Админ Панель</a></div>
+  <h1 id="site-name">Админ Панель</h1>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">Начало</a>
+  &rsaquo; <a href="/admin/graph/">Graph</a>
+  &rsaquo; <a href="/admin/graph/graph">Графики</a>
+  &rsaquo; <a href="">График {{graph.subdivision}} {{graph.reservoir}} за {{selected_month}} {{year}}</a>
+</div>
 {% endblock %}
 
 {% block content %}

@@ -7,7 +7,16 @@
 {% endblock %}
 
 {% block branding %}
-<div id="site-name"><a href="{% url 'admin:index' %}">Админ Панель</a></div>
+  <h1 id="site-name">Админ Панель</h1>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">Начало</a>
+  &rsaquo; <a href="/admin/graph/">Graph</a>
+  &rsaquo; <a href="/admin/graph/graph">Графики</a>
+  &rsaquo; <a>График {{graph.subdivision}} {{graph.reservoir}} за {{selected_month}} {{year}}</a>
+</div>
 {% endblock %}
 
 {% block content %}
@@ -54,10 +63,8 @@
 													{% if data.worked_hours == '' %}
 														<td><input style = "width: 40px;" type="text" name="worked_hours_{{ data.pk }}_{{day}}_{{employee.tabel_number}}" list="attendance_list"></td>
 														{% comment %} <td><input style = "width: 20px;" type="text" id="timetracking_field" name="worked_hours_{{ data.pk }}_{{day}}_{{employee.tabel_number}}" value="{{ data.worked_hours }}"></td>	 {% endcomment %}
-														
 													{% else %}
 														<td><input style = "width: 40px;" type="text" name="worked_hours_{{ data.pk }}_{{day}}_{{employee.tabel_number}}" value="{{data.worked_hours}}" list="attendance_list"></td>
-														{% comment %} <td><input style = "width: 20px;" type="text" id="timetracking_field" name="worked_hours_{{ data.pk }}_{{day}}_{{employee.tabel_number}}" value="{{ data.worked_hours }}"></td>	 {% endcomment %}
 													{% endif %}
 													<datalist id="attendance_list">
 														{% for attend in attendance_full %}
@@ -89,6 +96,7 @@
 			</table>
 			
 			<input type="submit" value="Сохранить график" class="default">
+			
 			<a href="{% url 'graph:graph_admin' %}">
 				<input type="button" value="Назад" class="default">
 			</a>
@@ -124,7 +132,7 @@
 					newRow.innerHTML = `
 									<td>{{ forloop.counter }}</td>
 									<td>
-									<input class="employee_select" type="text" list="employee_list">
+									<input class="employee_select" type="text" list="employee_list" name="time_tracking_set-__prefix__-employee_id">
 										<datalist id="employee_list">
 											{% for employee in employees_all %}
 											<option type="text" name=employee_{{ employee.tabel_number }} value="{{employee.tabel_number}}">{{employee.fullname}}</option>
@@ -166,9 +174,6 @@
 						});
 						console.log(selectedOption)
 					}
-
-					
-
 				});//
 			});
 		</script>

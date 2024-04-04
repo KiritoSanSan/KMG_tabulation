@@ -23,11 +23,12 @@ from django.contrib.admin.utils import flatten_fieldsets
 from django.contrib.admin.helpers import AdminForm, InlineAdminFormSet
 
 from django.contrib.admin.options import get_content_type_for_model
-from django.contrib import messages
+
 from tabel.models import Tabel
 from .forms import *
 from django.core.exceptions import ObjectDoesNotExist
-
+from django.contrib import messages
+from tabel.models import TimeTrackingTabel
 
 # Create your views here.
 
@@ -175,21 +176,6 @@ def home(request):
     }
     return render(request,'graph/home.html',context)
 
-
-def wrap_admin_view(view, cacheable=False):
-    """
-    Use this to wrap view functions used in admin dashboard
-    Note: Only the views that require a admin login
-    """
-    from django.contrib import admin
-
-    def wrapper(*args, **kwargs):
-        return admin.site.admin_view(view, cacheable)(*args, **kwargs)
-
-    wrapper.admin_site = admin.site
-    return update_wrapper(wrapper, view)
-
-
 def graph_admin(request):
     #chosen graph
     if 'graph_pk' in request.GET:
@@ -198,7 +184,7 @@ def graph_admin(request):
         
     #soglasovat' graphik
     if request.method == 'POST':
-        # Check if the submitted form contains the key 'soglasovat'
+        # Check if the submitted form contains the key 'approve_graph'
         if 'approve_graph' in request.POST:
             graph_pk = request.POST.get('graph_pk')
             graph_inst = Graph.objects.get(pk=graph_pk)
@@ -222,16 +208,25 @@ def graph_admin(request):
                     month=graph_inst.month,
                     year=graph_inst.year,
                 )
+
+                for employee in employees_graph:
+                    time_tracking = TimeTracking.objects.filter(employee_id=employee).values()
+                    employee_instance = Employees.objects.get(pk=employee.tabel_number)
+                    for value in time_tracking:
+                        TimeTrackingTabel.objects.create(
+                            employee_id = employee_instance,
+                            date = value['date'],
+                            worked_hours = value['worked_hours']
+                        )
                 # Set the many-to-many relationship using the .set() method
                 tabel_instance.employees.set(employees_graph)
                 messages.success(request,'Табель согласован')
                 return redirect('admin:tabel_tabel_changelist')
 
-
-
     graph_pk = request.session['chosen_pk']  
     graph = Graph.objects.get(pk=graph_pk)
     employees = graph.employees.all()
+    attendance_full = Attendance.objects.all()
     attendance = Attendance.objects.filter(type='дни явок')
     no_attendance = Attendance.objects.filter(type='дни неявок')
     tracking = TimeTracking.objects.all()
@@ -269,17 +264,22 @@ def graph_admin(request):
     #attendace calculation start
     directory = {}
     for employee in employees:
-        pairs = [('worked_days', 0), ('weekends', 0), ('days_in_month', len(days)), ('total_work_hours', 0)]
+        pairs = []
+        pairs.append(('worked_days', 0))
+        for att in attendance_full:
+            pairs.append((f'{att}', 0))
+        pairs.append(('total_work_hours', 0))
         directory[f'{employee.name}'] = dict(pairs)
 
     for employee in employees:
         for work in tracking:
             if work.employee_id == employee:
                 if str(work.worked_hours).isdigit():
-                    directory[f'{employee.name}']['worked_days'] += 1 
+                    directory[f'{employee.name}']['worked_days'] += 1
                     directory[f'{employee.name}']['total_work_hours'] += int(work.worked_hours)
-                else:
-                    directory[f'{employee.name}']['weekends'] += 1
+                for dir in directory[f'{employee.name}'].keys():
+                    if dir == work.worked_hours:
+                        directory[f'{employee.name}'][f'{dir}'] += 1
 
     #attendance calculation end
 
@@ -305,7 +305,7 @@ def graph_admin_update(request):
     graph_pk = request.session['chosen_pk']
     graph = Graph.objects.get(pk=graph_pk)
     employees = graph.employees.all()
-    attendance_all = Attendance.objects.all()
+    attendance_full = Attendance.objects.all()
     attendance = Attendance.objects.filter(type="дни явок")
     no_attendance = Attendance.objects.filter(type="дни неявок")
     tracking = TimeTracking.objects.all()
@@ -406,17 +406,22 @@ def graph_admin_update(request):
     #attendance calculation start
     directory = {}
     for employee in employees:
-        pairs = [('worked_days', 0), ('weekends', 0), ('days_in_month', len(days)), ('total_work_hours', 0)]
+        pairs = []
+        pairs.append(('worked_days', 0))
+        for att in attendance_full:
+            pairs.append((f'{att}', 0))
+        pairs.append(('total_work_hours', 0))
         directory[f'{employee.name}'] = dict(pairs)
 
     for employee in employees:
         for work in tracking:
             if work.employee_id == employee:
                 if str(work.worked_hours).isdigit():
-                    directory[f'{employee.name}']['worked_days'] += 1 
+                    directory[f'{employee.name}']['worked_days'] += 1
                     directory[f'{employee.name}']['total_work_hours'] += int(work.worked_hours)
-                else:
-                    directory[f'{employee.name}']['weekends'] += 1
+                for dir in directory[f'{employee.name}'].keys():
+                    if dir == work.worked_hours:
+                        directory[f'{employee.name}'][f'{dir}'] += 1
     
     #attendance calculation end
     
@@ -429,7 +434,7 @@ def graph_admin_update(request):
         "selected_month": name_month_ru,
         'employees':employees,
         'attendance': attendance,
-        'attendance_full':attendance_all, 
+        'attendance_full':attendance_full, 
         'no_attendance': no_attendance,
         'time_tracking': tracking,
         'graph':graph,
