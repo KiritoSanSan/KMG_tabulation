@@ -64,7 +64,7 @@ class SubdivisionAdmin(admin.ModelAdmin):
 #      model = TimeTracking.employee_id.through
 #      extra = 1
 
-@admin.register(TimeTracking)
+# @admin.register(TimeTracking)
 class TimeTrackingAdmin(admin.ModelAdmin):
         list_display = (
                     'employee_id',

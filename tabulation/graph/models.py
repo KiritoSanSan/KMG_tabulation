@@ -72,8 +72,8 @@ class TimeTracking(models.Model):
     worked_hours = models.CharField(max_length = 5, verbose_name = "Проработано часов",default="0",null=True)
 
     class Meta:
-        verbose_name = 'Контроль времени работников'
-        verbose_name_plural = "Контроль времени работников"
+        verbose_name = 'Контроль времени работников Графика'
+        verbose_name_plural = "Контроль времени работников Графика"
         # unique_together = ('date','employee_id')
 
     def __str__(self) -> str:

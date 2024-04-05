@@ -395,7 +395,7 @@ def graph_admin_update(request):
                     time_tracking_instance = TimeTracking.objects.get(pk=time_tracking_id)
                     time_tracking_instance.worked_hours = value
                     time_tracking_instance.save()
-
+        
         return redirect(reverse('graph:graph_admin') +f'?graph_pk={graph_pk}')
     
     name_month_en = calendar.month_name[int(month)]

@@ -51,9 +51,9 @@ class AdminTabel(admin.ModelAdmin):
                       +urlencode({'tabel_pk':tabel})
          )
          return format_html('<a href={}>{}',url,f"Согласованный Табель {tabel}" )
-    view_tabel_link.short_description = 'Табели'
+    view_tabel_link.short_description = 'Согласованные Табеля'
 
-@admin.register(TimeTrackingTabel)
+# @admin.register(TimeTrackingTabel)
 class TimeTrackingTabelAdmin(admin.ModelAdmin):
     list_display = ('employee_id', 'worked_hours', 'date')
 
@@ -85,5 +85,5 @@ class AdminTabelApproved(admin.ModelAdmin):
                       +"?"
                       +urlencode({'tabel_pk':tabel})
          )
-         return format_html('<a href={}>{}',url,f"Окончательный Табель {tabel}" )
-    view_tabel_link.short_description = 'Табели'
+         return format_html('<a href={}>{}',url,f"Утвержденный Табель {tabel}" )
+    view_tabel_link.short_description = 'Утвержденные Табеля'

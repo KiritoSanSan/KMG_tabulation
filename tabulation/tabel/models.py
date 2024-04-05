@@ -30,8 +30,8 @@ class Tabel(models.Model):
     employees = models.ManyToManyField('graph.Employees',through="TabelEmployeesList",related_name='tabel_employee',verbose_name='Работники')
 
     class Meta:
-            verbose_name = 'Табель'
-            verbose_name_plural = "Табеля"
+            verbose_name = 'Согласованный Табель'
+            verbose_name_plural = "Согласованные Табеля"
 
     def __str__(self) -> str:
         return f"{self.id} {self.subdivision} {self.reservoir}"
@@ -42,8 +42,8 @@ class TimeTrackingTabel(models.Model):
     worked_hours = models.CharField(max_length = 5, verbose_name = "Проработано часов",default="0",null=True)
 
     class Meta:
-        verbose_name = 'Контроль времени работников'
-        verbose_name_plural = "Контроль времени работников"
+        verbose_name = 'Контроль времени работников Табеля'
+        verbose_name_plural = "Контроль времени работников Табеля"
         # unique_together = ('date','employee_id')
 
     def __str__(self) -> str:
@@ -66,8 +66,8 @@ class TabelApproved(models.Model):
     employees = models.ManyToManyField('graph.Employees',through="TabelApprovedEmployeesList",related_name='tabel_approved_employee',verbose_name='Работники')
 
     class Meta:
-            verbose_name = 'Окончательный Табель'
-            verbose_name_plural = "Окончательные Табеля"
+        verbose_name = 'Утвержденный Табель'
+        verbose_name_plural = "Утвержденные Табеля"
 
     def __str__(self) -> str:
         return f"{self.id} {self.subdivision} {self.reservoir}"
