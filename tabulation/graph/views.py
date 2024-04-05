@@ -382,13 +382,13 @@ def graph_admin_update(request):
         for key, value in request.POST.items():
             # print(request.POST)
             if key.startswith('worked_hours_'):
-                time_tracking_day = int(key.split('_')[3])  
+                time_tracking_day = int(key.split('_')[4])  
                 key_parts = key.split('_')
                 if len(key_parts) > 5:
                     for day in days:
                         time_tracking_employee = key.split('_')[4] + "_" + key.split('_')[5]
                         if day == time_tracking_day:
-                                time_tracking_id = key.split('_')[2]
+                                time_tracking_id = key.split('_')[3]
                                 time_tracking_instance = TimeTracking.objects.get(pk=time_tracking_id)
                                 time_tracking_instance.worked_hours = value
                                 time_tracking_instance.save()
@@ -399,7 +399,7 @@ def graph_admin_update(request):
                                 worked_hours="0",
                             )
                 else:
-                    time_tracking_id = key.split('_')[2]
+                    time_tracking_id = key.split('_')[3]
                     time_tracking_instance = TimeTracking.objects.get(pk=time_tracking_id)
                     time_tracking_instance.worked_hours = value
                     time_tracking_instance.save()

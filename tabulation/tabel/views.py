@@ -6,6 +6,8 @@ from .models import *
 from graph.models import Attendance, Graph , TimeTracking
 from django.db.models import Q
 from graph.views import sidebar
+from django.http import JsonResponse
+from django.db.models import Sum
 
 from datetime import datetime
 from django.urls import reverse
@@ -67,20 +69,6 @@ def tabel_admin(request):
     days = range(1,num_days+1)
 
     #calculation attendace start
-    # directory = {}
-    # for employee in employees:
-    #     pairs = [('worked_days', 0), ('weekends', 0), ('days_in_month', len(days)), ('total_work_hours', 0)]
-    #     directory[f'{employee.name}'] = dict(pairs)
-
-    # for employee in employees:
-    #     for work in tracking:
-    #         if work.employee_id == employee:
-    #             if str(work.worked_hours).isdigit():
-    #                 directory[f'{employee.name}']['worked_days'] += 1 
-    #                 directory[f'{employee.name}']['total_work_hours'] += int(work.worked_hours)
-    #             else:
-    #                 directory[f'{employee.name}']['weekends'] += 1
-    
     directory = {}
     for employee in employees:
         pairs = []
@@ -203,8 +191,10 @@ def tabel_admin_update(request):
     #calculation attendance end
 
     if request.method == "POST":
-        print(request.POST)
+        # AJAX requests 
+        
         if request.headers["content-type"].strip().startswith("application/json"):
+            # print(request.body.decode('utf-8'))
             if "employee_id_delete" in request.body.decode('utf-8'):
                 employee_deletion_data = json.loads(request.body)
                 employee_tabel_number = employee_deletion_data.get('employee_id_delete')
@@ -224,16 +214,67 @@ def tabel_admin_update(request):
                     )
                 tabel.employees.add(employee_tabel_number)
 
+            # elif "tracking_id" in request.body.decode('utf-8'):
+            #     data = json.loads(request.body)
+            #     tracking_id = data["tracking_id"]
+            #     # tracking_orig = TimeTrackingTabel.objects.get(pk=tracking_id).worked_hours
+            #     day = data["day"]
+            #     employee_tabel_number = data["employee_tabel_number"]
+            #     # employee_tabel = tabel.employees.get(pk = data["employee_tabel_number"])
+            #     worked_hours = data["worked_hours"]
+
+            #     TimeTrackingTabel.objects.filter(pk=tracking_id).update(worked_hours=worked_hours)
+                
+            #     total_worked_hours = TimeTrackingTabel.objects.filter(employee_id=employee_tabel_number).aggregate(total=Sum('worked_hours'))['total'] or 0
+                
+            #     days_worked = TimeTrackingTabel.objects.filter(employee_id=employee_tabel_number, worked_hours__isnull=False).count()
+                
+            #     variables_count = len(directory[int(f'{employee_tabel_number}')])
+                
+            #     calculated_data = {
+            #         "total_worked_hours": total_worked_hours,
+            #         "days_worked": days_worked,
+            #         "variables_count": variables_count,
+            #     }
+
+            #     return JsonResponse(calculated_data)
+
+                # for employee in employees:
+                #     if employee.tabel_number == employee_tabel_number:
+                #         if worked_hours == '' and tracking_orig != '': # Deleted
+                #             if not str(tracking_orig).isdigit():
+                #                 for dir in directory[f'{employee.name}'].keys():
+                #                     if dir == tracking_orig:
+                #                         directory[f'{employee.name}'][f'{dir}'] -= 1
+                #             else:
+                #                 directory[f'{employee.name}']['worked_days'] -= 1
+                #                 directory[f'{employee.name}']['total_work_hours'] -= tracking_orig
+
+                #         elif worked_hours != '' and tracking_orig == '': # Added
+                #             if not str(tracking_orig).isdigit():
+                #                 for dir in directory[f'{employee.name}'].keys():
+                #                     if dir == tracking_orig:
+                #                         directory[f'{employee.name}'][f'{dir}'] += 1
+                #             # else:
+
+                                
+
+                #         directory[f'{employee.name}']['worked_days'] += 1
+                #         directory[f'{employee.name}']['total_work_hours'] += int(worked_hours) - tracking_orig
+
+                # return JsonResponse({'success': True, 'directory': directory})
+
         for key, value in request.POST.items():
             # print(request.POST)
             if key.startswith('worked_hours_'):
-                time_tracking_day = int(key.split('_')[3])  
+                time_tracking_day = int(key.split('_')[4])  
                 key_parts = key.split('_')
+                print(key_parts)
                 if len(key_parts) > 5:
                     for day in days:
                         time_tracking_employee = key.split('_')[4] + "_" + key.split('_')[5]
                         if day == time_tracking_day:
-                            time_tracking_id = key.split('_')[2]
+                            time_tracking_id = key.split('_')[3]
                             time_tracking_instance = TimeTrackingTabel.objects.get(pk=time_tracking_id)
                             time_tracking_instance.worked_hours = value
                             time_tracking_instance.save()
@@ -244,7 +285,7 @@ def tabel_admin_update(request):
                                 worked_hours="0",
                             )
                 else:
-                    time_tracking_id = key.split('_')[2]
+                    time_tracking_id = key.split('_')[3]
                     time_tracking_instance = TimeTrackingTabel.objects.get(pk=time_tracking_id)
                     time_tracking_instance.worked_hours = value
                     time_tracking_instance.save()

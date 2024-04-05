@@ -60,10 +60,10 @@
 										{% if data.date.month == month %}
 												{% if data.date.day == day %}
 													{% if data.worked_hours == '' %}
-														<td><input style = "width: 40px;" type="text" name="worked_hours_{{ data.pk }}_{{day}}_{{employee.tabel_number}}" list="attendance_list"></td>
+														<td><input type="text" name="worked_hours_{{employee.tabel_number}}_{{ data.pk }}_{{day}}" list="attendance_list"></td>
 														{% comment %} <td><input style = "width: 20px;" type="text" id="timetracking_field" name="worked_hours_{{ data.pk }}_{{day}}_{{employee.tabel_number}}" value="{{ data.worked_hours }}"></td>	 {% endcomment %}
 													{% else %}
-														<td><input style = "width: 40px;" type="text" name="worked_hours_{{ data.pk }}_{{day}}_{{employee.tabel_number}}" value="{{data.worked_hours}}" list="attendance_list"></td>
+														<td><input type="text" name="worked_hours_{{employee.tabel_number}}_{{ data.pk }}_{{day}}" value="{{data.worked_hours}}" list="attendance_list"></td>
 													{% endif %}
 													<datalist id="attendance_list">
 														{% for attend in attendance_all %}
@@ -102,26 +102,57 @@
 		</form>
 		<input id="add-row-button" type="button" value="Добавить работника" class="default">
 		<script>
-			$(".deletelink").click(function() {
-				const value = $(this).data("custom-value");
-				const csrftoken = '{{ csrf_token }}'
-				console.log(value)
-				fetch("{% url 'graph:graph_admin_update' %}", {
-					method: "POST",
-					headers: {
-						'Content-Type': 'application/json',
-						'X-CSRFToken': csrftoken,
-					},
-					body: JSON.stringify({ employee_id_delete: value }),
-				})
+			$(document).ready(function(){
+				$('input[name^="worked_hours_"]').on('input', function() {
+					var inputFieldName = $(this).attr('name');
+					var parts = inputFieldName.split('_');
+					var employee_tabel_number = parts[2];
+					
+					var totalWorkedHours = 0;
+					var totalWorkedDays = 0;
+					var days_length = 0
 
-				.then(response => {
-					location.replace("{% url 'graph:graph_admin_update' %}")
-				})
-				
-				
+					{% for day in days %}
+						days_length++;
+					{% endfor %}
+					console.log(days_length)
+					$('input[name^="worked_hours_' + employee_tabel_number + '_' + '"]').each(function() {
+						var worked_hours = $(this).val();
+						if ($.isNumeric(worked_hours)) {
+							totalWorkedHours += parseFloat(worked_hours);
+							if (worked_hours !== '0') {
+								totalWorkedDays++;
+							}
+						}
+			
+					});
+					console.log('totalWorkedDays', totalWorkedDays)
+					console.log('totalWorkedHours', totalWorkedHours)
+					$(this).closest('tr').find('td').eq(36).text(totalWorkedDays); 
+					$(this).closest('tr').find('td').eq(37).text(days_length - totalWorkedDays); //rest days
+					$(this).closest('tr').find('td').eq(-1).text(totalWorkedHours); 
+				});
+
+				$(".deletelink").click(function() {
+					const value = $(this).data("custom-value");
+					const csrftoken = '{{ csrf_token }}'
+					console.log(value)
+					fetch("{% url 'graph:graph_admin_update' %}", {
+						method: "POST",
+						headers: {
+							'Content-Type': 'application/json',
+							'X-CSRFToken': csrftoken,
+						},
+						body: JSON.stringify({ employee_id_delete: value }),
+					})
+
+					.then(response => {
+						location.replace("{% url 'graph:graph_admin_update' %}")
+					})
+					
+					
+				});
 			});
-
 			document.addEventListener("DOMContentLoaded", function() {
 				const addRowButton = document.getElementById("add-row-button");
 				const tableBody = document.getElementById("id_time_tracking_set-group");

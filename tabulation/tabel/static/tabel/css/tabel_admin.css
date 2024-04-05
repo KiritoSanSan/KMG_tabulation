@@ -15,7 +15,6 @@
     border: 1px solid lightgrey;
 }
 
-#timetracking_field{
-    background: inherit;
-    /* border: none; */
+#id_time_tracking_set-group input{
+    width: 40px;
 }
