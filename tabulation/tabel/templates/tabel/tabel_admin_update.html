@@ -20,6 +20,7 @@
 {% endblock %}
 
 {% block content %}
+<div class="results">
   <table class="admin_table">
     <thead>
       <tr>
@@ -91,9 +92,9 @@
                     {% if data.employee_id.tabel_number == employee.tabel_number %}
                       {% comment %} <td><input style = "width: 40px;" type="text" name="worked_hours_{{ data.pk }}_{{day}}_{{employee.tabel_number}}" value="{{data.worked_hours}}"></td> {% endcomment %}
                       {% if data.worked_hours == '' %}
-                        <td><input type="text" name="worked_hours_{{employee.tabel_number}}_{{ data.pk }}_{{day}}" list="attendance_list"></td>
+                        <td><input style="width: 40px;" type="text" name="worked_hours_{{employee.tabel_number}}_{{ data.pk }}_{{day}}" list="attendance_list"></td>
                       {% else %}
-                        <td><input type="text" name="worked_hours_{{employee.tabel_number}}_{{ data.pk }}_{{day}}" value="{{data.worked_hours}}" list="attendance_list"></td>
+                        <td><input style="width: 40px;" type="text" name="worked_hours_{{employee.tabel_number}}_{{ data.pk }}_{{day}}" value="{{data.worked_hours}}" list="attendance_list"></td>
                       {% endif %}
                       <datalist id="attendance_list">
                         {% for attend in attendance_all %}
@@ -140,6 +141,7 @@
   <a href="{% url 'tabel:tabel_admin' %}">
     <input type="button" value="Назад" class="default">
   </a>
+</div>
 </form>
 <input id="add-row-button" type="button" value="Добавить работника" class="default">
 <script>
@@ -195,7 +197,8 @@
 
     $(".deletelink").click(function() {
       const value = $(this).data("custom-value");
-      console.log(value)
+      csrftoken = "{{ csrf_token }}"
+      
       fetch("{% url 'tabel:tabel_admin_update' %}", {
         method: "POST",
         headers: {

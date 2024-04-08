@@ -22,4 +22,6 @@ class CustomUser(AbstractUser, PermissionsMixin):
     def __str__(self):
         return self.email
     
-
+    @property
+    def fullname(self):
+        return f"{self.first_name} {self.last_name}"

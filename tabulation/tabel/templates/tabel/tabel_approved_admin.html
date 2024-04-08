@@ -1,0 +1,138 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrahead %}
+<link rel="stylesheet" href="{% static 'tabel\css\tabel_admin.css' %}">
+{% endblock %}
+
+{% block branding %}
+  <h1 id="site-name">Админ Панель</h1>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">Начало</a>
+  &rsaquo; <a href="/admin/tabel/">Tabel</a>
+  &rsaquo; <a href="/admin/tabel/tabelapproved/">Утверждающие Табеля</a>
+  &rsaquo; <a>Утвержденный Табель {{tabel.subdivision}} {{tabel.reservoir}} за {{selected_month}} {{year}}</a>
+</div>
+{% endblock %}
+
+{% block content %}
+  <table class="admin_table">
+    <thead>
+      <tr>
+        <td colspan="5_{{forloop.counter}}"></td>
+        <td colspan="100">за {{selected_month}} {{year}}</td>    
+      </tr>
+      <tr>
+        <td rowspan="3">№№/пп</td>
+        <td rowspan="3">Фамилия, имя, отчество</td>
+        <td rowspan="3" class='vertical'>Табельный номер</td>
+        <td rowspan="3">Профессия, должность</td>
+        <td rowspan="3" class='vertical'>тарифный разряд</td>
+        <td colspan="{{days|length}}">Отработано часов по числам</td>
+        <td colspan="{{attendance|length|add:1}}">Дни явок</td>
+        <td colspan="{{no_attendance|length}}">Дни неявок</td>
+        <td rowspan="3" class='vertical'>Всего дней в месяце</td>
+        <td colspan="8">Отработанное время, часы </td>
+        <td colspan="3" rowspan="2">неотработанное время, часы</td>
+      </tr>
+      <tr>
+        {% for day in days %}
+          <td rowspan="2" class="nums">{{ day }}</td>
+        {% endfor %}
+        <td rowspan="2" class='vertical'>Дни явок фактической работы</td>
+        {% for a in attendance %}
+          <td>{{a.name}}</td>
+        {% endfor %}
+        {% for n in no_attendance %}
+          <td>{{n.name}}</td>
+        {% endfor %}
+        <td rowspan="2" class='vertical'>Отработанное количество часов</td>
+        <td rowspan="2" class='vertical'>ремонтных</td>
+        <td rowspan="2" class='vertical'>праздничных</td>
+        <td rowspan="2" class='vertical'>выходных</td>
+        <td rowspan="2" class='vertical'>ночных</td>
+        <td rowspan="2" class='vertical'>сверхурочных</td>
+        <td colspan="2">во вредных условиях труда</td>
+      </tr>
+      <tr>
+        {% for a in attendance %}
+          <td class='vertical'>{{a.description}}</td>
+        {% endfor %}
+        {% for n in no_attendance %}
+          <td class='vertical'>{{n.description}}</td>
+        {% endfor %}
+        <td class='vertical'>размер доплаты в %</td>
+        <td class='vertical'>кол-во часов</td>
+        <td class='vertical'>простой оплачиваемый</td>
+        <td class='vertical'>Перерывы для кормления ребенка</td>
+        <td class='vertical'>Время перерыва отдыха и приема пищи</td> 
+      </tr>  
+    </thead>
+    <tbody>
+      {% for employee in employees %}
+        <tr>
+          <td> {{ forloop.counter }} </td>
+          <td> {{ employee.name}} {{employee.surname}} {{employee.middlename}}</td>
+          <td> {{ employee.tabel_number }} </td>
+          <td> {{ employee.job.name }} {{ employee.job.description }}</td>
+          <td> {{ employee.tariff_category}} </td>  
+          
+          {% for day in days %}
+            {% for data in time_tracking %}
+              {% if data.date.year == year %}
+                {% if data.date.month == month %}
+                  {% if data.date.day == day %}
+                    {% if data.employee_id.tabel_number == employee.tabel_number %}
+                      {% comment %} <td>{{data.worked_hours}}</td> {% endcomment %}
+                      {% if data.worked_hours == '' %}
+                        <td>0</td>
+                      {% else %}
+                        <td>{{data.worked_hours}}</td>
+                      {% endif %}
+                    {% endif %}
+                  {% endif %}
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          {% endfor %}
+          <!--!-->
+          {% for key, value in calculations.items %}
+            {% if key == employee.name %}
+              {% for v in value.values %}
+                {% if v == 0 %}
+                  <td></td>
+                {% else %}
+                  <td>{{v}}</td>
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+          {% endfor %}
+
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <!--!-->
+        </tr>
+          
+      {% endfor %}
+    </tbody>
+  </table>
+
+  
+  <a href="/admin/tabel/tabel">
+    <input type="button" value="Назад" class="default">
+  </a>
+
+{% endblock content %}

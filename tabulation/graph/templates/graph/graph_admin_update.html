@@ -21,6 +21,7 @@
 
 {% block content %}
 {{block.super}}
+	<h1>График {{graph.subdivision}} {{graph.reservoir}} {{selected_month}} {{graph.year}}</h1>
   	<table class="admin_table">
 		<thead>
 		<tr>
@@ -60,13 +61,12 @@
 										{% if data.date.month == month %}
 												{% if data.date.day == day %}
 													{% if data.worked_hours == '' %}
-														<td><input type="text" name="worked_hours_{{employee.tabel_number}}_{{ data.pk }}_{{day}}" list="attendance_list"></td>
-														{% comment %} <td><input style = "width: 20px;" type="text" id="timetracking_field" name="worked_hours_{{ data.pk }}_{{day}}_{{employee.tabel_number}}" value="{{ data.worked_hours }}"></td>	 {% endcomment %}
+														<td><input style="width: 40px;" type="text" name="worked_hours_{{employee.tabel_number}}_{{ data.pk }}_{{day}}" list="attendance_list"></td>
 													{% else %}
-														<td><input type="text" name="worked_hours_{{employee.tabel_number}}_{{ data.pk }}_{{day}}" value="{{data.worked_hours}}" list="attendance_list"></td>
+														<td><input style="width: 40px;" type="text" name="worked_hours_{{employee.tabel_number}}_{{ data.pk }}_{{day}}" value="{{data.worked_hours}}" list="attendance_list"></td>
 													{% endif %}
 													<datalist id="attendance_list">
-														{% for attend in attendance_all %}
+														{% for attend in attendance_full %}
 															<option value="{{attend.name}}">														
 														{% endfor %}
 													</datalist>
@@ -130,7 +130,7 @@
 					console.log('totalWorkedHours', totalWorkedHours)
 					$(this).closest('tr').find('td').eq(36).text(totalWorkedDays); 
 					$(this).closest('tr').find('td').eq(37).text(days_length - totalWorkedDays); //rest days
-					$(this).closest('tr').find('td').eq(-1).text(totalWorkedHours); 
+					$(this).closest('tr').find('td').eq(39).text(totalWorkedHours); 
 				});
 
 				$(".deletelink").click(function() {
@@ -183,7 +183,6 @@
 					else if (event.target.classList.contains("save-row-button")) {
 						const selectElement = event.target.closest("tr").querySelector(".employee_select");
 						const selectedOption = selectElement.value;
-		
 						fetch("{% url 'graph:graph_admin_update' %}", {
 							method: "POST",
 							headers: {

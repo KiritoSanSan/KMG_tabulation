@@ -135,4 +135,14 @@
   <a href="/admin/tabel/tabel">
     <input type="button" value="Назад" class="default">
   </a>
+  <form style="width: 10%;" method="post" action="/tabel_admin?tabel_pk={{tabel_pk}}" name='soglasovat' onsubmit="return confirmSubmit();">
+    {% csrf_token %}
+    <input type="hidden" name="tabel_pk" value="{{ tabel_pk }}">
+    <input type="submit" value="Утвердить" name="approve_graph" class="default">
+  </form>
+  <script>
+    function confirmSubmit() {
+      return confirm("Вы уверены, что хотите Утвердить Табель?");
+    }
+  </script>
 {% endblock content %}

@@ -1,8 +1,14 @@
 from django.db import models
 from django.forms import ValidationError
 from django.urls import reverse
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
+from django.db.models import Q
+
 from django.contrib import messages
 import datetime
+
+# from tabulation import graph
 # Create your models here.
 MONTH_CHOICES_RU = (
     ("1", "Январь"),
@@ -66,9 +72,9 @@ class TimeTracking(models.Model):
     worked_hours = models.CharField(max_length = 5, verbose_name = "Проработано часов",default="0",null=True)
 
     class Meta:
-        verbose_name = 'Контроль времени работников'
-        verbose_name_plural = "Контроль времени работников"
-        unique_together = ('date','employee_id')
+        verbose_name = 'Контроль времени работников Графика'
+        verbose_name_plural = "Контроль времени работников Графика"
+        # unique_together = ('date','employee_id')
 
     def __str__(self) -> str:
         return f"{self.id} {self.employee_id.name} {self.worked_hours}"
@@ -116,7 +122,7 @@ class Graph(models.Model):
     month = models.CharField(max_length = 100,verbose_name='Месяц',choices=MONTH_CHOICES_RU,default=None)
     year = models.CharField(verbose_name = 'Год',choices=YEARS_CHOICES,max_length=4,default=None)
     employees = models.ManyToManyField(Employees,through="GraphEmployeesList",related_name='graph_employee',verbose_name='Работники')
-             
+
     class Meta:
         verbose_name = 'График'
         verbose_name_plural = "Графики"
@@ -124,9 +130,29 @@ class Graph(models.Model):
 
 
     def __str__(self) -> str:
-        return f"{self.id} {self.subdivision} {self.reservoir}  "
+        return f"{self.id} {self.subdivision} {self.reservoir}"
+    
+    # @receiver(pre_delete, sender=TimeTracking)
+    # def delete(self,sender,instance, *args, **kwargs):
+    #     # Get all employees related to this graph
+    #     # graph = Graph.objects.get(pk=graph_pk)
+    #     graph_employees = instance.employees.all()
+    #     month = instance.month
+    #     year = instance.year
 
+    #     # Delete corresponding time tracking entries for each employee
+    #     for employee in graph_employees:
+    #         TimeTracking.objects.filter(employee_id=employee, date__month=month, date__year=year).delete()
+    #     print('delete gtaph')
+    #     # Now delete the graph itself
+    #     return super(Graph, self).delete(*args, **kwargs)
 
+# class TimeTrackingGraph(models.Model):
+#     timetracking = models.ForeignKey(TimeTracking,on_delete=models.CASCADE)
+#     employee = models.ForeignKey(Employees,on_delete=models.CASCADE)
+#     graph = models.ForeignKey(Graph,on_delete=models.CASCADE)
+#     date = models.DateField(auto_now=False, auto_now_add=False, verbose_name = "Дата")
+#     worked_hours = models.CharField(max_length = 5, verbose_name = "Проработано часов",default="0",null=True)
 
 
 class GraphEmployeesList(models.Model):

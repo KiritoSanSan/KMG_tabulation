@@ -30,8 +30,8 @@ class Tabel(models.Model):
     employees = models.ManyToManyField('graph.Employees',through="TabelEmployeesList",related_name='tabel_employee',verbose_name='Работники')
 
     class Meta:
-            verbose_name = 'Табель'
-            verbose_name_plural = "Табеля"
+            verbose_name = 'Согласованный Табель'
+            verbose_name_plural = "Согласованные Табеля"
 
     def __str__(self) -> str:
         return f"{self.id} {self.subdivision} {self.reservoir}"
@@ -42,9 +42,9 @@ class TimeTrackingTabel(models.Model):
     worked_hours = models.CharField(max_length = 5, verbose_name = "Проработано часов",default="0",null=True)
 
     class Meta:
-        verbose_name = 'Контроль времени работников'
-        verbose_name_plural = "Контроль времени работников"
-        unique_together = ('date','employee_id')
+        verbose_name = 'Контроль времени работников Табеля'
+        verbose_name_plural = "Контроль времени работников Табеля"
+        # unique_together = ('date','employee_id')
 
     def __str__(self) -> str:
         return f"{self.id} {self.employee_id.name} {self.worked_hours}"
@@ -57,3 +57,38 @@ class TabelEmployeesList(models.Model):
         verbose_name = 'Работник'
         verbose_name_plural = "Работники"
 
+
+class TabelApproved(models.Model):
+    reservoir= models.ForeignKey('graph.OilPlace', verbose_name="Месторождение",related_name='tabel_approved_reservoir', on_delete=models.CASCADE)
+    subdivision = models.ForeignKey('graph.Subdivision', verbose_name="Подразделение", on_delete=models.CASCADE,related_name = 'tabel_approved_subdivision')
+    month = models.CharField(max_length = 100,verbose_name='Месяц',choices=MONTH_CHOICES_RU,default=None)
+    year = models.CharField(verbose_name = 'Год',choices=YEARS_CHOICES,max_length=4,default=None)
+    employees = models.ManyToManyField('graph.Employees',through="TabelApprovedEmployeesList",related_name='tabel_approved_employee',verbose_name='Работники')
+
+    class Meta:
+        verbose_name = 'Утвержденный Табель'
+        verbose_name_plural = "Утвержденные Табеля"
+
+    def __str__(self) -> str:
+        return f"{self.id} {self.subdivision} {self.reservoir}"
+
+class TabelApprovedTimeTracking(models.Model):
+    employee_id = models.ForeignKey(Employees, verbose_name="Табельный Номер", on_delete=models.CASCADE)
+    date = models.DateField(auto_now=False, auto_now_add=False, verbose_name = "Дата")
+    worked_hours = models.CharField(max_length = 5, verbose_name = "Проработано часов",default="0",null=True)
+
+    class Meta:
+        verbose_name = 'Контроль времени работников Табеля'
+        verbose_name_plural = "Контроль времени работников Табеля"
+        # unique_together = ('date','employee_id')
+
+    def __str__(self) -> str:
+        return f"{self.id} {self.employee_id.name} {self.worked_hours}"
+
+class TabelApprovedEmployeesList(models.Model):
+    employee = models.ForeignKey(Employees, on_delete=models.CASCADE)
+    tabel = models.ForeignKey(TabelApproved, on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = 'Работник'
+        verbose_name_plural = "Работники"

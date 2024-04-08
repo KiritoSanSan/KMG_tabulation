@@ -9,7 +9,6 @@ from django.utils.html import format_html
 from django.utils.http import urlencode
 # Register your models here.
 
-
     
 @admin.register(Job)
 class JobAdmin(admin.ModelAdmin):
@@ -76,5 +75,8 @@ class SubdivisionAdmin(admin.ModelAdmin):
 # @admin.register(GraphEmployeesList)
 # class GraphEmployeesListAdmin(admin.ModelAdmin):
 #     list_display = ('employee_id', 'graph_id')
+        
+
+
 
 
