@@ -38,9 +38,9 @@ class AdminTabel(admin.ModelAdmin):
 # class TimeTrackingTabelAdmin(admin.ModelAdmin):
 #     list_display = ('employee_id', 'worked_hours', 'date')
 
-@admin.register(TabelApprovedTimeTracking)
-class AdminTabelApprovedTimeTracking(admin.ModelAdmin):
-    list_display = ('employee_id', 'worked_hours', 'date')
+# @admin.register(TabelApprovedTimeTracking)
+# class AdminTabelApprovedTimeTracking(admin.ModelAdmin):
+#     list_display = ('employee_id', 'worked_hours', 'date')
 
 @admin.register(TabelApproved)
 class AdminTabelApproved(admin.ModelAdmin):

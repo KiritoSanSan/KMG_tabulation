@@ -109,7 +109,7 @@
           {% endfor %}
           <!--!-->
           {% for key, value in calculations.items %}
-            {% if key == employee.name %}
+            {% if key == employee.tabel_number %}
               {% for v in value.values %}
                 {% if v == 0 %}
                   <td></td>
@@ -137,13 +137,12 @@
   </table>
 
   <input type="submit" value="Сохранить график" class="default">
-
-  <a href="{% url 'tabel:tabel_admin' %}">
-    <input type="button" value="Назад" class="default">
-  </a>
 </div>
 </form>
 <input id="add-row-button" type="button" value="Добавить работника" class="default">
+<a style="float: right;" href="{% url 'tabel:tabel_admin' %}">
+  <input type="button" value="Назад" class="default">
+</a>
 <script>
   $(document).ready(function(){
     $('input[name^="worked_hours_"]').on('input', function() {

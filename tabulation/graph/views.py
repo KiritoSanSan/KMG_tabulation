@@ -1,31 +1,34 @@
 import calendar
 import json
-from django.urls import NoReverseMatch
+# from django.urls import NoReverseMatch
 from django.utils.text import capfirst
 
-from functools import update_wrapper
-from typing import Any
-from django.apps import apps
+# from functools import update_wrapper
+# from typing import Any
+# from django.apps import apps
 
-from django.db.models.query import QuerySet
-from django.views.generic import ListView, CreateView, FormView, DetailView
+# from django.db.models.query import QuerySet
+# from django.views.generic import ListView, CreateView, FormView, DetailView
 from datetime import datetime
 from django.contrib.admin import AdminSite
 from django.contrib import admin 
-from django.contrib.admin.sites import site
+# from django.contrib.admin.sites import site
 from django.shortcuts import get_object_or_404, redirect, render
 from .models import *
 from django.db.models import Q
-from django.contrib.admin.options import ModelAdmin
+# from django.contrib.admin.options import ModelAdmin
 
-from django.contrib.admin.utils import flatten_fieldsets
+# from django.contrib.admin.utils import flatten_fieldsets
 
-from django.contrib.admin.helpers import AdminForm, InlineAdminFormSet
+# from django.contrib.admin.helpers import AdminForm, InlineAdminFormSet
 
-from django.contrib.admin.options import get_content_type_for_model
+# from django.contrib.admin.options import get_content_type_for_model
+
+from django.contrib.auth.decorators import login_required
 
 from tabel.models import Tabel
 from .forms import *
+from .decorators import allowed_users
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
 from tabel.models import TimeTrackingTabel
@@ -149,6 +152,9 @@ def home(request):
     }
     return render(request,'graph/home.html',context)
 
+
+@login_required(login_url='admin/login/')
+@allowed_users(allowed_roles=['Табельщик', 'Администратор', 'Руководитель'])
 def graph_admin(request):
     #chosen graph
     if 'graph_pk' in request.GET:
@@ -231,17 +237,18 @@ def graph_admin(request):
     directory = {}
     for employee in employees:
         pairs = [('worked_days', 0), ('weekends', 0), ('days_in_month', len(days)), ('total_work_hours', 0)]
-        directory[f'{employee.name}'] = dict(pairs)
+        directory[int(f'{employee.tabel_number}')] = dict(pairs)
 
     for employee in employees:
         for work in tracking:
             if work.employee_id == employee:
                 if str(work.worked_hours).isdigit():
-                    directory[f'{employee.name}']['worked_days'] += 1 
-                    directory[f'{employee.name}']['total_work_hours'] += int(work.worked_hours)
+                    directory[int(f'{employee.tabel_number}')]['worked_days'] += 1 
+                    directory[int(f'{employee.tabel_number}')]['total_work_hours'] += int(work.worked_hours)
                 else:
-                    directory[f'{employee.name}']['weekends'] += 1
+                    directory[int(f'{employee.tabel_number}')]['weekends'] += 1
 
+    print(directory)
     context = {
         'graph_pk':graph_pk,
         "year":year,
@@ -259,6 +266,9 @@ def graph_admin(request):
     context.update(sidebar(request))
     return render(request,'graph/graph_admin.html',context)
 
+
+@login_required(login_url='admin/login/')
+@allowed_users(allowed_roles=['Табельщик', 'Администратор'])
 def graph_admin_update(request):
     search_text = request.POST.get('time_tracking_set-prefix-employee_id')
     graph_pk = request.session['chosen_pk']
@@ -362,17 +372,18 @@ def graph_admin_update(request):
     directory = {}
     for employee in employees:
         pairs = [('worked_days', 0), ('weekends', 0), ('days_in_month', len(days)), ('total_work_hours', 0)]
-        directory[f'{employee.name}'] = dict(pairs)
+        directory[int(f'{employee.tabel_number}')] = dict(pairs)
 
     for employee in employees:
         for work in tracking:
             if work.employee_id == employee:
                 if str(work.worked_hours).isdigit():
-                    directory[f'{employee.name}']['worked_days'] += 1 
-                    directory[f'{employee.name}']['total_work_hours'] += int(work.worked_hours)
+                    directory[int(f'{employee.tabel_number}')]['worked_days'] += 1 
+                    directory[int(f'{employee.tabel_number}')]['total_work_hours'] += int(work.worked_hours)
                 else:
-                    directory[f'{employee.name}']['weekends'] += 1
+                    directory[int(f'{employee.tabel_number}')]['weekends'] += 1
     
+    # print(type(directory.keys()))
     context = {
         'employees_all': search_employee,
         'graph_pk':graph_pk,

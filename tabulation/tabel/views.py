@@ -1,15 +1,17 @@
-from audioop import reverse
+# from audioop import reverse
 import calendar
 import json
 
 from django.shortcuts import get_object_or_404, redirect, render
 from .models import *
+from graph.decorators import allowed_users
 from graph.models import Attendance
 from django.db.models import Q
 from graph.views import sidebar
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from datetime import datetime
 from django.urls import reverse
 
@@ -28,6 +30,8 @@ month_names_ru = {
     "December": "Декабрь"
 }
 
+@login_required(login_url='admin/login/')
+@allowed_users(allowed_roles=['Табельщик', 'Администратор', 'Руководитель'])
 def tabel_admin(request):
     if 'tabel_pk' in request.GET:
         tabel_pk = request.GET['tabel_pk']
@@ -114,17 +118,17 @@ def tabel_admin(request):
             pairs.append((f'{att}', 0))
         pairs.append(('days_in_month', len(days)))
         pairs.append(('total_work_hours', 0))
-        directory[f'{employee.name}'] = dict(pairs)
+        directory[int(f'{employee.tabel_number}')] = dict(pairs)
 
     for employee in employees:
         for work in tracking:
             if work.employee_id == employee:
                 if str(work.worked_hours).isdigit():
-                    directory[f'{employee.name}']['worked_days'] += 1
-                    directory[f'{employee.name}']['total_work_hours'] += int(work.worked_hours)
-                for dir in directory[f'{employee.name}'].keys():
+                    directory[int(f'{employee.tabel_number}')]['worked_days'] += 1
+                    directory[int(f'{employee.tabel_number}')]['total_work_hours'] += int(work.worked_hours)
+                for dir in directory[int(f'{employee.tabel_number}')].keys():
                     if dir == work.worked_hours:
-                        directory[f'{employee.name}'][f'{dir}'] += 1
+                        directory[int(f'{employee.tabel_number}')][f'{dir}'] += 1
 
     context = {
         'tabel_pk':tabel_pk,
@@ -143,7 +147,8 @@ def tabel_admin(request):
     return render(request,'tabel/tabel_admin.html',context)
 
 
-
+@login_required(login_url='admin/login/')
+@allowed_users(allowed_roles=['Табельщик', 'Администратор'])
 def tabel_admin_update(request):
     if 'tabel_pk' in request.GET:
         tabel_pk = request.GET['tabel_pk']
@@ -259,17 +264,17 @@ def tabel_admin_update(request):
             pairs.append((f'{att}', 0))
         pairs.append(('days_in_month', len(days)))
         pairs.append(('total_work_hours', 0))
-        directory[f'{employee.name}'] = dict(pairs)
+        directory[int(f'{employee.tabel_number}')] = dict(pairs)
 
     for employee in employees:
         for work in tracking:
             if work.employee_id == employee:
                 if str(work.worked_hours).isdigit():
-                    directory[f'{employee.name}']['worked_days'] += 1
-                    directory[f'{employee.name}']['total_work_hours'] += int(work.worked_hours)
-                for dir in directory[f'{employee.name}'].keys():
+                    directory[int(f'{employee.tabel_number}')]['worked_days'] += 1
+                    directory[int(f'{employee.tabel_number}')]['total_work_hours'] += int(work.worked_hours)
+                for dir in directory[int(f'{employee.tabel_number}')].keys():
                     if dir == work.worked_hours:
-                        directory[f'{employee.name}'][f'{dir}'] += 1
+                        directory[int(f'{employee.tabel_number}')][f'{dir}'] += 1
 
     context = {
         'graph_pk':tabel_pk,
@@ -291,7 +296,8 @@ def tabel_admin_update(request):
 
     return render(request,'tabel/tabel_admin_update.html',context)
 
-
+@login_required(login_url='admin/login/')
+@allowed_users(allowed_roles=['Табельщик', 'Администратор', 'Руководитель'])
 def tabel_approved_admin(request):
     if 'tabel_pk' in request.GET:
         tabel_pk = request.GET['tabel_pk']
@@ -340,17 +346,17 @@ def tabel_approved_admin(request):
             pairs.append((f'{att}', 0))
         pairs.append(('days_in_month', len(days)))
         pairs.append(('total_work_hours', 0))
-        directory[f'{employee.name}'] = dict(pairs)
+        directory[int(f'{employee.tabel_number}')] = dict(pairs)
 
     for employee in employees:
         for work in tracking:
             if work.employee_id == employee:
                 if str(work.worked_hours).isdigit():
-                    directory[f'{employee.name}']['worked_days'] += 1
-                    directory[f'{employee.name}']['total_work_hours'] += int(work.worked_hours)
-                for dir in directory[f'{employee.name}'].keys():
+                    directory[int(f'{employee.tabel_number}')]['worked_days'] += 1
+                    directory[int(f'{employee.tabel_number}')]['total_work_hours'] += int(work.worked_hours)
+                for dir in directory[int(f'{employee.tabel_number}')].keys():
                     if dir == work.worked_hours:
-                        directory[f'{employee.name}'][f'{dir}'] += 1
+                        directory[int(f'{employee.tabel_number}')][f'{dir}'] += 1
 
     context = {
         'tabel_pk':tabel_pk,

@@ -78,7 +78,10 @@
 						{% endfor %}
 			
 						{% for key, value in calculations.items %}
-							{% if key == employee.name %}
+							{% comment %} <td>{{key}}</td>
+							<td>{{employee.tabel_number}}</td> {% endcomment %}
+							
+							{% if key == employee.tabel_number %}
 								{% for calculation in value.values %}
 									{% if calculation == 0 %}
 										<td>0</td>
@@ -96,11 +99,12 @@
 			
 			<input type="submit" value="Сохранить график" class="default">
 			
-			<a href="{% url 'graph:graph_admin' %}">
-				<input type="button" value="Назад" class="default">
-			</a>
+			
 		</form>
 		<input id="add-row-button" type="button" value="Добавить работника" class="default">
+		<a style="float: right;" href="{% url 'graph:graph_admin' %}">
+			<input type="button" value="Назад" class="default">
+		</a>
 		<script>
 			$(document).ready(function(){
 				$('input[name^="worked_hours_"]').on('input', function() {

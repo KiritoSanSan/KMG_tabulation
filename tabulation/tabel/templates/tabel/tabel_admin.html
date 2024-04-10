@@ -100,7 +100,7 @@
           {% endfor %}
           <!--!-->
           {% for key, value in calculations.items %}
-            {% if key == employee.name %}
+            {% if key == employee.tabel_number %}
               {% for v in value.values %}
                 {% if v == 0 %}
                   <td></td>
@@ -127,19 +127,25 @@
       {% endfor %}
     </tbody>
   </table>
-  <a href="{% url 'tabel:tabel_admin_update' %}">
-    <input type="submit" value="Редактировать" class="default">
-  </a>
 
-  
-  <a href="/admin/tabel/tabel">
-    <input type="button" value="Назад" class="default">
-  </a>
+  {% if perms.tabel.add_timetrackingtabel %}
   <form style="width: 10%;" method="post" action="/tabel_admin?tabel_pk={{tabel_pk}}" name='soglasovat' onsubmit="return confirmSubmit();">
     {% csrf_token %}
     <input type="hidden" name="tabel_pk" value="{{ tabel_pk }}">
     <input type="submit" value="Утвердить" name="approve_graph" class="default">
   </form>
+  {% endif %}
+
+  {% if perms.tabel.change_tabel %}
+  <a href="{% url 'tabel:tabel_admin_update' %}">
+    <input type="submit" value="Редактировать" class="default">
+  </a>
+  {% endif %}
+
+  <a style="float: right;" href="/admin/tabel/tabel">
+    <input type="button" value="Назад" class="default">
+  </a>
+  
   <script>
     function confirmSubmit() {
       return confirm("Вы уверены, что хотите Утвердить Табель?");

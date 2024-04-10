@@ -54,8 +54,8 @@ class TabelEmployeesList(models.Model):
     tabel = models.ForeignKey(Tabel, on_delete=models.CASCADE)
 
     class Meta:
-        verbose_name = 'Работник'
-        verbose_name_plural = "Работники"
+        verbose_name = 'Работники в табеле'
+        verbose_name_plural = "Работники в табелях"
 
 
 class TabelApproved(models.Model):
@@ -90,5 +90,5 @@ class TabelApprovedEmployeesList(models.Model):
     tabel = models.ForeignKey(TabelApproved, on_delete=models.CASCADE)
 
     class Meta:
-        verbose_name = 'Работник'
-        verbose_name_plural = "Работники"
+        verbose_name = 'Работники в табеле'
+        verbose_name_plural = "Работники в табелях"
