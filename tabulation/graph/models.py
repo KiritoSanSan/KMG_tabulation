@@ -35,7 +35,7 @@ ATTENDACE_CHOICES = (
 )
 class Job(models.Model):
     name = models.CharField(max_length = 100, verbose_name = "Название",unique=True)
-    description = models.CharField(max_length=200, verbose_name = "Описание")
+    description = models.CharField(max_length=200, verbose_name = "Описание",null=True)
     
     class Meta:
             verbose_name = 'Должность'

@@ -23,6 +23,7 @@ class EmployeesInline(admin.TabularInline):
         return False
     
 
+
 @admin.register(Tabel)
 class AdminTabel(admin.ModelAdmin):
     # inlines = [EmployeesInline]
@@ -78,6 +79,7 @@ class AdminTabelApproved(admin.ModelAdmin):
                    'year',
                    'subdivision')
     
+
     def view_tabel_link(self,obj):
          tabel = obj.pk
          url = (

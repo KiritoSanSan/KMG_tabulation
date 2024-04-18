@@ -2,14 +2,21 @@ from typing import Any
 from django.contrib import admin
 from django.contrib.admin import AdminSite
 from django.contrib.admin.sites import site
+from django.db.models.base import Model
 from django.http import HttpResponse
 from .models import *
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.http import urlencode
+from django.contrib.admin.views.main import ChangeList
+from django.contrib.admin.utils import quote
+
 # Register your models here.
 
     
+
+
+
 @admin.register(Job)
 class JobAdmin(admin.ModelAdmin):
     list_display = ('name','description')
@@ -27,6 +34,11 @@ class EmployeesAdmin(admin.ModelAdmin):
                     'job',
                     'oil_place')
 
+# class ChangeLink(ChangeList):
+#      def url_for_result(self, result: Model) -> str:
+#         pk = getattr(result,self.pk_attname)
+#         return '/foos/foo/%d/' % (quote(pk))
+
 @admin.register(Graph)
 class GraphAdmin(admin.ModelAdmin):
     list_display = ('id',
@@ -35,6 +47,7 @@ class GraphAdmin(admin.ModelAdmin):
                     'month',
                     'year',
                     'view_graph_link',
+                    # 'parsing_graph',
                     )
     list_filter = ('reservoir',
                    'year',
@@ -49,7 +62,14 @@ class GraphAdmin(admin.ModelAdmin):
                     +urlencode({'graph_pk':graph})
         )
         return format_html('<a href={}>{}',url,f"График Вахты №{graph}")
-    view_graph_link.short_description = 'Графики'
+        view_graph_link.short_description = 'Графики'
+    def parsing_graph(self,obj):
+        url = (reverse('graph:graph_parsing'))
+        return format_html('<a href={}>{}',url,'Парсинг Excel Графиков')
+    parsing_graph.short_description = 'Парсинг Графиков'
+
+
+
 
 @admin.register(OilPlace)
 class OilPlaceAdmin(admin.ModelAdmin):
@@ -64,7 +84,7 @@ class SubdivisionAdmin(admin.ModelAdmin):
 #      model = TimeTracking.employee_id.through
 #      extra = 1
 
-# @admin.register(TimeTracking)
+@admin.register(TimeTracking)
 class TimeTrackingAdmin(admin.ModelAdmin):
         list_display = (
                     'employee_id',

@@ -1,0 +1,24 @@
+{%extends 'admin/base_site.html'%}
+
+{% block branding %}
+  <h1 id="site-name">Админ Панель</h1>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">Начало</a>
+  &rsaquo; <a href="/admin/graph/">Graph</a>
+  &rsaquo; <a href="/admin/graph/graph">Графики</a>
+  &rsaquo; <a>Парсинг Графиков</a>
+</div>
+{% endblock %}
+
+{%block content%}
+<h1>Прикрепите Excel файл Графика Вахт, только в виде .xlsx!!!</h1>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <label for="file">Выбрать файл:</label>
+    <input type="file" id="file" name="file">
+    <input type="submit" value="Upload">
+  </form>
+{%endblock%}

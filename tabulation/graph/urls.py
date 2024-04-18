@@ -10,4 +10,5 @@ urlpatterns = [
     path('graph_admin_update',graph_admin_update,name='graph_admin_update'),
     # path('', RedirectView.as_view(url='/admin/', permanent=True))
     # path('creation_timetracking',CreationTimeTracking.as_view(),name='creation_timetracking'),
+    path('parsing_graph',upload_file,name='graph_parsing')
 ]
