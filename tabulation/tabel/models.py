@@ -54,8 +54,8 @@ class TabelEmployeesList(models.Model):
     tabel = models.ForeignKey(Tabel, on_delete=models.CASCADE)
 
     class Meta:
-        verbose_name = 'Работник'
-        verbose_name_plural = "Работники"
+        verbose_name = 'Работники в табеле'
+        verbose_name_plural = "Работники в табелях"
 
 
 class TabelApproved(models.Model):
@@ -72,11 +72,23 @@ class TabelApproved(models.Model):
     def __str__(self) -> str:
         return f"{self.id} {self.subdivision} {self.reservoir}"
 
+class TabelApprovedTimeTracking(models.Model):
+    employee_id = models.ForeignKey(Employees, verbose_name="Табельный Номер", on_delete=models.CASCADE)
+    date = models.DateField(auto_now=False, auto_now_add=False, verbose_name = "Дата")
+    worked_hours = models.CharField(max_length = 5, verbose_name = "Проработано часов",default="0",null=True)
+
+    class Meta:
+        verbose_name = 'Контроль времени работников Табеля'
+        verbose_name_plural = "Контроль времени работников Табеля"
+        # unique_together = ('date','employee_id')
+
+    def __str__(self) -> str:
+        return f"{self.id} {self.employee_id.name} {self.worked_hours}"
 
 class TabelApprovedEmployeesList(models.Model):
     employee = models.ForeignKey(Employees, on_delete=models.CASCADE)
     tabel = models.ForeignKey(TabelApproved, on_delete=models.CASCADE)
 
     class Meta:
-        verbose_name = 'Работник'
-        verbose_name_plural = "Работники"
+        verbose_name = 'Работники в табеле'
+        verbose_name_plural = "Работники в табелях"

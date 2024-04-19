@@ -109,10 +109,10 @@ class AdminUsernameAuthenticationForm(AuthenticationForm):
             try:
                 user = user_model.objects.get(username=username)
             except user_model.DoesNotExist:
-                raise forms.ValidationError('Invalid username or password')
+                raise forms.ValidationError('Не правильный логин или пароль')
 
             if not user.check_password(password):
-                raise forms.ValidationError('Invalid username or password')
+                raise forms.ValidationError('Не правильный логин или пароль')
 
         return self.cleaned_data
         
@@ -127,10 +127,10 @@ class AdminUsernameAuthenticationForm(AuthenticationForm):
             try:
                 user = UserModel.objects.get(email=email)
             except UserModel.DoesNotExist:
-                raise forms.ValidationError('Invalid email or password')
+                raise forms.ValidationError('Не правильная почта или пароль')
 
             if not user.check_password(password):
-                raise forms.ValidationError('Invalid email or password')
+                raise forms.ValidationError('Не правильная почта или пароль')
 
             self.user = user
 

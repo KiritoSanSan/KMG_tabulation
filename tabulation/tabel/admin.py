@@ -26,7 +26,6 @@ class EmployeesInline(admin.TabularInline):
 
 @admin.register(Tabel)
 class AdminTabel(admin.ModelAdmin):
-    # inlines = [EmployeesInline]
     readonly_fields = ('id',
                     'reservoir',
                     'subdivision',
@@ -55,13 +54,15 @@ class AdminTabel(admin.ModelAdmin):
     view_tabel_link.short_description = 'Согласованные Табеля'
 
 # @admin.register(TimeTrackingTabel)
-class TimeTrackingTabelAdmin(admin.ModelAdmin):
-    list_display = ('employee_id', 'worked_hours', 'date')
+# class TimeTrackingTabelAdmin(admin.ModelAdmin):
+#     list_display = ('employee_id', 'worked_hours', 'date')
 
+# @admin.register(TabelApprovedTimeTracking)
+# class AdminTabelApprovedTimeTracking(admin.ModelAdmin):
+#     list_display = ('employee_id', 'worked_hours', 'date')
 
 @admin.register(TabelApproved)
 class AdminTabelApproved(admin.ModelAdmin):
-    # inlines = [EmployeesInline]
     readonly_fields = ('id',
                     'reservoir',
                     'subdivision',

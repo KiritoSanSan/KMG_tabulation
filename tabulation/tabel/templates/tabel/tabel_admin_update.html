@@ -92,9 +92,9 @@
                     {% if data.employee_id.tabel_number == employee.tabel_number %}
                       {% comment %} <td><input style = "width: 40px;" type="text" name="worked_hours_{{ data.pk }}_{{day}}_{{employee.tabel_number}}" value="{{data.worked_hours}}"></td> {% endcomment %}
                       {% if data.worked_hours == '' %}
-                        <td><input style = "width: 40px;" type="text" name="worked_hours_{{ data.pk }}_{{day}}_{{employee.tabel_number}}" list="attendance_list"></td>
+                        <td><input style="width: 40px;" type="text" name="worked_hours_{{employee.tabel_number}}_{{ data.pk }}_{{day}}" list="attendance_list"></td>
                       {% else %}
-                        <td><input style = "width: 40px;" type="text" name="worked_hours_{{ data.pk }}_{{day}}_{{employee.tabel_number}}" value="{{data.worked_hours}}" list="attendance_list"></td>
+                        <td><input style="width: 40px;" type="text" name="worked_hours_{{employee.tabel_number}}_{{ data.pk }}_{{day}}" value="{{data.worked_hours}}" list="attendance_list"></td>
                       {% endif %}
                       <datalist id="attendance_list">
                         {% for attend in attendance_all %}
@@ -109,7 +109,7 @@
           {% endfor %}
           <!--!-->
           {% for key, value in calculations.items %}
-            {% if key == employee.name %}
+            {% if key == employee.tabel_number %}
               {% for v in value.values %}
                 {% if v == 0 %}
                   <td></td>
@@ -130,8 +130,6 @@
           <td></td>
           <td></td>
           <td></td>
-          <td></td>
-          <td></td>
           <!--!-->
         </tr>  
       {% endfor %}
@@ -139,35 +137,89 @@
   </table>
 
   <input type="submit" value="Сохранить график" class="default">
-
-  <a href="{% url 'tabel:tabel_admin' %}">
-    <input type="button" value="Назад" class="default">
-  </a>
 </div>
 </form>
 <input id="add-row-button" type="button" value="Добавить работника" class="default">
+<a style="float: right;" href="{% url 'tabel:tabel_admin' %}">
+  <input type="button" value="Назад" class="default">
+</a>
 <script>
-  $(".deletelink").click(function() {
-    const value = $(this).data("custom-value");
-    const csrftoken = '{{ csrf_token }}'
-    console.log(value)
-    fetch("{% url 'tabel:tabel_admin_update' %}", {
-      method: "POST",
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrftoken,
-      },
-      body: JSON.stringify({ employee_id_delete: value }),
-    })
+  $(document).ready(function(){
+    $('input[name^="worked_hours_"]').on('input', function() {
+      var inputFieldName = $(this).attr('name');
+      var parts = inputFieldName.split('_');
+      var employee_tabel_number = parts[2];
+      
+      var totalWorkedHours = 0;
+      var totalWorkedDays = 0;
+      var variables = {};
+      
+      {% for attend in attendance %}
+        variables['{{attend}}'] = 0;
+      {% endfor %}
 
-    .then(response => {
-      location.replace("{% url 'tabel:tabel_admin_update' %}")
-    })
-  });
+      {% for attend in no_attendance %}
+        variables['{{attend}}'] = 0;
+      {% endfor %}
+
+      var keys = Object.keys(variables);
+      
+      $('input[name^="worked_hours_' + employee_tabel_number + '_' + '"]').each(function() {
+        var worked_hours = $(this).val();
+        if ($.isNumeric(worked_hours)) {
+            totalWorkedHours += parseFloat(worked_hours);
+            if (worked_hours !== '0') {
+              totalWorkedDays++;
+            }
+        }
+        
+        for (let k in variables) {
+          if (k === worked_hours){
+            variables[k]++;
+          }
+        }
+
+      });
+
+      $(this).closest('tr').find('td').eq(36).text(totalWorkedDays); 
+      for (let i = 0; i < keys.length; i++) {
+        if (variables[keys[i]] !== 0){
+          $(this).closest('tr').find('td').eq(37+i).text(variables[keys[i]]);
+        }
+        else {
+          $(this).closest('tr').find('td').eq(37+i).text('');
+
+        }
+      }
+      $(this).closest('tr').find('td').eq(-11).text(totalWorkedHours); 
+    });
+
+    $(".deletelink").click(function() {
+      const value = $(this).data("custom-value");
+      csrftoken = "{{ csrf_token }}"
+      
+      fetch("{% url 'tabel:tabel_admin_update' %}", {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrftoken,
+        },
+        body: JSON.stringify({ employee_id_delete: value }),
+      })
+  
+      .then(response => {
+        location.replace("{% url 'tabel:tabel_admin_update' %}")
+      })
+    });
+
+
+  })
+  
 
   document.addEventListener("DOMContentLoaded", function() {
     const addRowButton = document.getElementById("add-row-button");
     const tableBody = document.getElementById("id_time_tracking_set-group");
+    
     const csrftoken = '{{ csrf_token }}'
     addRowButton.addEventListener("click", function() {
       const newRow = document.createElement("tr");
@@ -217,7 +269,7 @@
         });
         console.log(selectedOption)
       }
-    });//
+    });
   });
 </script>
 

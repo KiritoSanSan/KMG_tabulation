@@ -1,20 +1,19 @@
-from audioop import reverse
+# from audioop import reverse
 import calendar
 import json
 
 from django.shortcuts import get_object_or_404, redirect, render
 from .models import *
-from graph.models import Attendance, Graph , TimeTracking
+from graph.decorators import allowed_users
+from graph.models import Attendance
 from django.db.models import Q
 from graph.views import sidebar
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from datetime import datetime
-from django.shortcuts import redirect, render
 from django.urls import reverse
-from .models import *
-from graph.views import sidebar
-from graph.models import Attendance, Graph, Job, TimeTracking
 
 month_names_ru = {
     "January": "Январь",
@@ -31,22 +30,19 @@ month_names_ru = {
     "December": "Декабрь"
 }
 
-
-    
+@login_required(login_url='admin/login/')
+@allowed_users(allowed_roles=['Табельщик', 'Администратор', 'Руководитель'])
 def tabel_admin(request):
     if 'tabel_pk' in request.GET:
         tabel_pk = request.GET['tabel_pk']
         request.session['chosen_pk'] = tabel_pk
-    #soglasovat' tabel
+
     if request.method == 'POST':
-        # Check if the submitted form contains the key 'approve_graph'
         if 'approve_graph' in request.POST:
             tabel_pk = request.POST.get('tabel_pk')
             tabel_inst = Tabel.objects.get(pk=tabel_pk)
-            # Create a Tabel instance with data from the chosen graph
             employees_graph = tabel_inst.employees.all()
             try:
-                # Attempt to retrieve an existing Tabel instance
                 tabel_instance = TabelApproved.objects.get(
                     reservoir=tabel_inst.reservoir,
                     subdivision=tabel_inst.subdivision,
@@ -54,28 +50,27 @@ def tabel_admin(request):
                     year=tabel_inst.year,
                 )
                 if tabel_instance:
-                    messages.error(request,'Табель уже согласован')
+                    messages.error(request,'Табель уже утвержден')
             except ObjectDoesNotExist:
-                # If Tabel object doesn't exist, create it
                 tabel_instance = TabelApproved.objects.create(
                     reservoir=tabel_inst.reservoir,
                     subdivision=tabel_inst.subdivision,
                     month=tabel_inst.month,
                     year=tabel_inst.year,
                 )
-                # tabel_instance.employees.add(employees_graph)
+
                 for employee in employees_graph:
-                    time_tracking = TimeTracking.objects.filter(employee_id=employee).values()
+                    time_tracking = TimeTrackingTabel.objects.filter(employee_id=employee).values()
                     employee_instance = Employees.objects.get(pk=employee.tabel_number)
                     for value in time_tracking:
-                        TimeTrackingTabel.objects.create(
+                        TabelApprovedTimeTracking.objects.create(
                             employee_id = employee_instance,
                             date = value['date'],
                             worked_hours = value['worked_hours']
                         )
-                # Set the many-to-many relationship using the .set() method
+            
                 tabel_instance.employees.set(employees_graph)
-                messages.success(request,'Табель согласован')
+                messages.success(request,'Табель утвержден')
                 return redirect(reverse('admin:tabel_tabelapproved_changelist'))
             
 
@@ -112,21 +107,7 @@ def tabel_admin(request):
     num_days = calendar.monthrange(int(year),int(month))[1]
     days = range(1,num_days+1)
 
-    #calculation attendace start
-    # directory = {}
-    # for employee in employees:
-    #     pairs = [('worked_days', 0), ('weekends', 0), ('days_in_month', len(days)), ('total_work_hours', 0)]
-    #     directory[f'{employee.name}'] = dict(pairs)
-
-    # for employee in employees:
-    #     for work in tracking:
-    #         if work.employee_id == employee:
-    #             if str(work.worked_hours).isdigit():
-    #                 directory[f'{employee.name}']['worked_days'] += 1 
-    #                 directory[f'{employee.name}']['total_work_hours'] += int(work.worked_hours)
-    #             else:
-    #                 directory[f'{employee.name}']['weekends'] += 1
-    
+    #calculation attendace
     directory = {}
     for employee in employees:
         pairs = []
@@ -137,68 +118,17 @@ def tabel_admin(request):
             pairs.append((f'{att}', 0))
         pairs.append(('days_in_month', len(days)))
         pairs.append(('total_work_hours', 0))
-        directory[f'{employee.name}'] = dict(pairs)
+        directory[int(f'{employee.tabel_number}')] = dict(pairs)
 
     for employee in employees:
         for work in tracking:
             if work.employee_id == employee:
                 if str(work.worked_hours).isdigit():
-                    directory[f'{employee.name}']['worked_days'] += 1
-                    directory[f'{employee.name}']['total_work_hours'] += int(work.worked_hours)
-                for dir in directory[f'{employee.name}'].keys():
+                    directory[int(f'{employee.tabel_number}')]['worked_days'] += 1
+                    directory[int(f'{employee.tabel_number}')]['total_work_hours'] += int(work.worked_hours)
+                for dir in directory[int(f'{employee.tabel_number}')].keys():
                     if dir == work.worked_hours:
-                        directory[f'{employee.name}'][f'{dir}'] += 1
-
-    #calculation attendance end
-
-    if request.method == "POST":
-        print(request.POST)
-        if request.headers["content-type"].strip().startswith("application/json"):
-            if "employee_id_delete" in request.body.decode('utf-8'):
-                employee_deletion_data = json.loads(request.body)
-                employee_tabel_number = employee_deletion_data.get('employee_id_delete')
-                empl = Employees.objects.get(pk=employee_tabel_number)
-                tabel.employees.remove(empl)
-                TimeTrackingTabel.objects.filter(employee_id = employee_tabel_number).delete()
-                    
-            if "employee_id" in request.body.decode('utf-8'):
-                employee_addition_data = json.loads(request.body)
-                employee_tabel_number = employee_addition_data.get('employee_id')
-                empl = Employees.objects.get(pk=employee_tabel_number)
-                for day in days:
-                    TimeTrackingTabel.objects.create(
-                        employee_id = empl,
-                        date = datetime(year, month, day),
-                        worked_hours = ''
-                    )
-                tabel.employees.add(employee_tabel_number)
-
-        for key, value in request.POST.items():
-            # print(request.POST)
-            if key.startswith('worked_hours_'):
-                time_tracking_day = int(key.split('_')[3])  
-                key_parts = key.split('_')
-                if len(key_parts) > 5:
-                    for day in days:
-                        time_tracking_employee = key.split('_')[4] + "_" + key.split('_')[5]
-                        if day == time_tracking_day:
-                            time_tracking_id = key.split('_')[2]
-                            time_tracking_instance = TimeTrackingTabel.objects.get(pk=time_tracking_id)
-                            time_tracking_instance.worked_hours = value
-                            time_tracking_instance.save()
-                        else:
-                            TimeTrackingTabel.objects.create(
-                                employee_id=time_tracking_employee,
-                                date=datetime(int(year), int(month), day),
-                                worked_hours="0",
-                            )
-                else:
-                    time_tracking_id = key.split('_')[2]
-                    time_tracking_instance = TimeTrackingTabel.objects.get(pk=time_tracking_id)
-                    time_tracking_instance.worked_hours = value
-                    time_tracking_instance.save()
-
-        return redirect(reverse('tabel:tabel_admin') +f'?tabel_pk={tabel_pk}')
+                        directory[int(f'{employee.tabel_number}')][f'{dir}'] += 1
 
     context = {
         'tabel_pk':tabel_pk,
@@ -217,7 +147,8 @@ def tabel_admin(request):
     return render(request,'tabel/tabel_admin.html',context)
 
 
-
+@login_required(login_url='admin/login/')
+@allowed_users(allowed_roles=['Табельщик', 'Администратор'])
 def tabel_admin_update(request):
     if 'tabel_pk' in request.GET:
         tabel_pk = request.GET['tabel_pk']
@@ -271,34 +202,9 @@ def tabel_admin_update(request):
     
     num_days = calendar.monthrange(int(year),int(month))[1]
     days = range(1,num_days+1)
-
-    #calculation attendace start
-    directory = {}
-    for employee in employees:
-        pairs = []
-        pairs.append(('worked_days', 0))
-        for att in attendance:
-            pairs.append((f'{att}', 0))
-        for att in no_attendance:
-            pairs.append((f'{att}', 0))
-        pairs.append(('days_in_month', len(days)))
-        pairs.append(('total_work_hours', 0))
-        directory[f'{employee.name}'] = dict(pairs)
-
-    for employee in employees:
-        for work in tracking:
-            if work.employee_id == employee:
-                if str(work.worked_hours).isdigit():
-                    directory[f'{employee.name}']['worked_days'] += 1
-                    directory[f'{employee.name}']['total_work_hours'] += int(work.worked_hours)
-                for dir in directory[f'{employee.name}'].keys():
-                    if dir == work.worked_hours:
-                        directory[f'{employee.name}'][f'{dir}'] += 1
-
-    #calculation attendance end
-
+    
     if request.method == "POST":
-        print(request.POST)
+        # AJAX requests 
         if request.headers["content-type"].strip().startswith("application/json"):
             if "employee_id_delete" in request.body.decode('utf-8'):
                 employee_deletion_data = json.loads(request.body)
@@ -322,13 +228,14 @@ def tabel_admin_update(request):
         for key, value in request.POST.items():
             # print(request.POST)
             if key.startswith('worked_hours_'):
-                time_tracking_day = int(key.split('_')[3])  
+                time_tracking_day = int(key.split('_')[4])  
                 key_parts = key.split('_')
+                
                 if len(key_parts) > 5:
                     for day in days:
                         time_tracking_employee = key.split('_')[4] + "_" + key.split('_')[5]
                         if day == time_tracking_day:
-                            time_tracking_id = key.split('_')[2]
+                            time_tracking_id = key.split('_')[3]
                             time_tracking_instance = TimeTrackingTabel.objects.get(pk=time_tracking_id)
                             time_tracking_instance.worked_hours = value
                             time_tracking_instance.save()
@@ -339,33 +246,36 @@ def tabel_admin_update(request):
                                 worked_hours="0",
                             )
                 else:
-                    time_tracking_id = key.split('_')[2]
+                    time_tracking_id = key.split('_')[3]
                     time_tracking_instance = TimeTrackingTabel.objects.get(pk=time_tracking_id)
                     time_tracking_instance.worked_hours = value
                     time_tracking_instance.save()
 
         return redirect(reverse('tabel:tabel_admin') +f'?tabel_pk={tabel_pk}')
                         
-
-
-    #calculation attendace start
+    #calculation attendace  
     directory = {}
     for employee in employees:
         pairs = []
         pairs.append(('worked_days', 0))
-        for att in full_attendance:
+        for att in attendance:
             pairs.append((f'{att}', 0))
+        for att in no_attendance:
+            pairs.append((f'{att}', 0))
+        pairs.append(('days_in_month', len(days)))
         pairs.append(('total_work_hours', 0))
-        directory[f'{employee.name}'] = dict(pairs)
+        directory[int(f'{employee.tabel_number}')] = dict(pairs)
+
     for employee in employees:
         for work in tracking:
             if work.employee_id == employee:
                 if str(work.worked_hours).isdigit():
-                    directory[f'{employee.name}']['worked_days'] += 1
-                    directory[f'{employee.name}']['total_work_hours'] += int(work.worked_hours)
-                for dir in directory[f'{employee.name}'].keys():
+                    directory[int(f'{employee.tabel_number}')]['worked_days'] += 1
+                    directory[int(f'{employee.tabel_number}')]['total_work_hours'] += int(work.worked_hours)
+                for dir in directory[int(f'{employee.tabel_number}')].keys():
                     if dir == work.worked_hours:
-                        directory[f'{employee.name}'][f'{dir}'] += 1
+                        directory[int(f'{employee.tabel_number}')][f'{dir}'] += 1
+
     context = {
         'graph_pk':tabel_pk,
         "year":year,
@@ -386,6 +296,8 @@ def tabel_admin_update(request):
 
     return render(request,'tabel/tabel_admin_update.html',context)
 
+@login_required(login_url='admin/login/')
+@allowed_users(allowed_roles=['Табельщик', 'Администратор', 'Руководитель'])
 def tabel_approved_admin(request):
     if 'tabel_pk' in request.GET:
         tabel_pk = request.GET['tabel_pk']
@@ -395,7 +307,7 @@ def tabel_approved_admin(request):
     employees = tabel.employees.all()
     attendance = Attendance.objects.filter(type='дни явок')
     no_attendance = Attendance.objects.filter(type='дни неявок')
-    tracking = TimeTrackingTabel.objects.all()
+    tracking = TabelApprovedTimeTracking.objects.all()
     
     month = tabel.month
     year = tabel.year
@@ -405,13 +317,13 @@ def tabel_approved_admin(request):
 
     if month and month is not None:
         filter_month = int(month)
-        tracking = TimeTrackingTabel.objects.filter(employee_id__in = employees.values_list('tabel_number',flat=True))
+        tracking = TabelApprovedTimeTracking.objects.filter(employee_id__in = employees.values_list('tabel_number',flat=True))
         tracking = tracking.filter(date__month=filter_month)
         tabel_numbers = tracking.values_list('employee_id',flat=True)
         employees = employees.filter(tabel_number__in=tabel_numbers)
     if year and year is not None:
         filter_year = int(year)
-        tracking = TimeTrackingTabel.objects.filter(employee_id__in = employees.values_list('tabel_number',flat=True))
+        tracking = TabelApprovedTimeTracking.objects.filter(employee_id__in = employees.values_list('tabel_number',flat=True))
         tracking = tracking.filter(date__year=filter_year)
         tabel_numbers = tracking.values_list('employee_id',flat=True)
         employees = employees.filter(tabel_number__in=tabel_numbers)
@@ -422,6 +334,8 @@ def tabel_approved_admin(request):
     
     num_days = calendar.monthrange(int(year),int(month))[1]
     days = range(1,num_days+1)
+
+    #calculation attendance 
     directory = {}
     for employee in employees:
         pairs = []
@@ -432,68 +346,17 @@ def tabel_approved_admin(request):
             pairs.append((f'{att}', 0))
         pairs.append(('days_in_month', len(days)))
         pairs.append(('total_work_hours', 0))
-        directory[f'{employee.name}'] = dict(pairs)
+        directory[int(f'{employee.tabel_number}')] = dict(pairs)
 
     for employee in employees:
         for work in tracking:
             if work.employee_id == employee:
                 if str(work.worked_hours).isdigit():
-                    directory[f'{employee.name}']['worked_days'] += 1
-                    directory[f'{employee.name}']['total_work_hours'] += int(work.worked_hours)
-                for dir in directory[f'{employee.name}'].keys():
+                    directory[int(f'{employee.tabel_number}')]['worked_days'] += 1
+                    directory[int(f'{employee.tabel_number}')]['total_work_hours'] += int(work.worked_hours)
+                for dir in directory[int(f'{employee.tabel_number}')].keys():
                     if dir == work.worked_hours:
-                        directory[f'{employee.name}'][f'{dir}'] += 1
-
-    #calculation attendance end
-
-    if request.method == "POST":
-        print(request.POST)
-        if request.headers["content-type"].strip().startswith("application/json"):
-            if "employee_id_delete" in request.body.decode('utf-8'):
-                employee_deletion_data = json.loads(request.body)
-                employee_tabel_number = employee_deletion_data.get('employee_id_delete')
-                empl = Employees.objects.get(pk=employee_tabel_number)
-                tabel.employees.remove(empl)
-                TimeTrackingTabel.objects.filter(employee_id = employee_tabel_number).delete()
-                    
-            if "employee_id" in request.body.decode('utf-8'):
-                employee_addition_data = json.loads(request.body)
-                employee_tabel_number = employee_addition_data.get('employee_id')
-                empl = Employees.objects.get(pk=employee_tabel_number)
-                for day in days:
-                    TimeTrackingTabel.objects.create(
-                        employee_id = empl,
-                        date = datetime(year, month, day),
-                        worked_hours = ''
-                    )
-                tabel.employees.add(employee_tabel_number)
-
-        for key, value in request.POST.items():
-            # print(request.POST)
-            if key.startswith('worked_hours_'):
-                time_tracking_day = int(key.split('_')[3])  
-                key_parts = key.split('_')
-                if len(key_parts) > 5:
-                    for day in days:
-                        time_tracking_employee = key.split('_')[4] + "_" + key.split('_')[5]
-                        if day == time_tracking_day:
-                            time_tracking_id = key.split('_')[2]
-                            time_tracking_instance = TimeTrackingTabel.objects.get(pk=time_tracking_id)
-                            time_tracking_instance.worked_hours = value
-                            time_tracking_instance.save()
-                        else:
-                            TimeTrackingTabel.objects.create(
-                                employee_id=time_tracking_employee,
-                                date=datetime(int(year), int(month), day),
-                                worked_hours="0",
-                            )
-                else:
-                    time_tracking_id = key.split('_')[2]
-                    time_tracking_instance = TimeTrackingTabel.objects.get(pk=time_tracking_id)
-                    time_tracking_instance.worked_hours = value
-                    time_tracking_instance.save()
-
-        return redirect(reverse('tabel:tabel_admin') +f'?tabel_pk={tabel_pk}')
+                        directory[int(f'{employee.tabel_number}')][f'{dir}'] += 1
 
     context = {
         'tabel_pk':tabel_pk,
@@ -510,6 +373,3 @@ def tabel_approved_admin(request):
     }
     context.update(sidebar(request))
     return render(request,'tabel/tabel_approved_admin.html',context)
-
-
-

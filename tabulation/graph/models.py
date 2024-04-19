@@ -131,39 +131,16 @@ class Graph(models.Model):
 
     def __str__(self) -> str:
         return f"{self.id} {self.subdivision} {self.reservoir}"
-    
-    # @receiver(pre_delete, sender=TimeTracking)
-    # def delete(self,sender,instance, *args, **kwargs):
-    #     # Get all employees related to this graph
-    #     # graph = Graph.objects.get(pk=graph_pk)
-    #     graph_employees = instance.employees.all()
-    #     month = instance.month
-    #     year = instance.year
-
-    #     # Delete corresponding time tracking entries for each employee
-    #     for employee in graph_employees:
-    #         TimeTracking.objects.filter(employee_id=employee, date__month=month, date__year=year).delete()
-    #     print('delete gtaph')
-    #     # Now delete the graph itself
-    #     return super(Graph, self).delete(*args, **kwargs)
-
-# class TimeTrackingGraph(models.Model):
-#     timetracking = models.ForeignKey(TimeTracking,on_delete=models.CASCADE)
-#     employee = models.ForeignKey(Employees,on_delete=models.CASCADE)
-#     graph = models.ForeignKey(Graph,on_delete=models.CASCADE)
-#     date = models.DateField(auto_now=False, auto_now_add=False, verbose_name = "Дата")
-#     worked_hours = models.CharField(max_length = 5, verbose_name = "Проработано часов",default="0",null=True)
-
 
 class GraphEmployeesList(models.Model):
     employee_id = models.ForeignKey(Employees,related_name='employees_graph_employee',on_delete=models.CASCADE)
     graph_id = models.ForeignKey(Graph,related_name='employees_graph_graph',on_delete=models.CASCADE)
     
     class Meta:
-            verbose_name = 'Работник'
-            verbose_name_plural = "Работники"
-            unique_together = ['employee_id','graph_id']
-    
+        verbose_name = 'Работники в графике'
+        verbose_name_plural = "Работники в графиках"
+        unique_together = ['employee_id','graph_id']
+
     def __str__(self):
 
         return f""

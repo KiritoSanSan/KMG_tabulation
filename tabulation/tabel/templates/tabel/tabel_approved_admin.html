@@ -13,8 +13,8 @@
 <div class="breadcrumbs">
   <a href="{% url 'admin:index' %}">Начало</a>
   &rsaquo; <a href="/admin/tabel/">Tabel</a>
-  &rsaquo; <a href="/admin/tabel/tabelapproved/">Утверждающие Табеля</a>
-  &rsaquo; <a>Утверждающий Табель {{tabel.subdivision}} {{tabel.reservoir}} за {{selected_month}} {{year}}</a>
+  &rsaquo; <a href="/admin/tabel/tabelapproved/">Утвержденные Табеля</a>
+  &rsaquo; <a>Утвержденный Табель {{tabel.subdivision}} {{tabel.reservoir}} за {{selected_month}} {{year}}</a>
 </div>
 {% endblock %}
 
@@ -100,7 +100,7 @@
           {% endfor %}
           <!--!-->
           {% for key, value in calculations.items %}
-            {% if key == employee.name %}
+            {% if key == employee.tabel_number %}
               {% for v in value.values %}
                 {% if v == 0 %}
                   <td></td>
@@ -121,8 +121,6 @@
           <td></td>
           <td></td>
           <td></td>
-          <td></td>
-          <td></td>
           <!--!-->
         </tr>
           
@@ -131,7 +129,7 @@
   </table>
 
   
-  <a href="/admin/tabel/tabel">
+  <a style="float: right;" href="/admin/tabel/tabelapproved/">
     <input type="button" value="Назад" class="default">
   </a>
 
