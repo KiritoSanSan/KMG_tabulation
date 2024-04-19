@@ -552,7 +552,7 @@ def upload_file(request):
                 count=1
                 for i in table_data['data']:
                     
-                    employee_excel = i[1].split(' ')
+                    employee_excel = i[1].split()
                     if len(employee_excel) == 2:
                         employee_excel.append(' .')
                     elif len(employee_excel) == 1:
