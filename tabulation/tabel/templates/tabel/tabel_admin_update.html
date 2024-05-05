@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block branding %}
-  <h1 id="site-name">Админ Панель</h1>
+  <a href="{% url 'admin:index' %}"><h1 id="site-name">Админ Панель</h1></a>
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -77,6 +77,57 @@
       <form method='POST' action="{% url 'tabel:tabel_admin_update' %}">
       {% csrf_token %}
       {% for employee in employees %}
+					<tr>
+						<td><a style="cursor: pointer;" id="delete-row-button" class="deletelink" data-custom-value="{{employee.tabel_number}}"></a> {{forloop.counter}}</td>
+						<td>{{employee.surname}} {{employee.name}} {{employee.middlename}}</td>
+						<td>{{employee.job.name}} {{employee.job.description}}</td>
+						<td>{{employee.oil_place}}</td>
+						<td>{{employee.tariff_category}}</td>
+
+            {%for key,value in time_tracking_dict.items%}
+                {%if key == employee.tabel_number%}
+                  {%for v in value%}
+                    {% if forloop.counter <= days|length %}
+                      {%if v == ''%}
+                        <td><input style="width: 40px;" type="text" name="worked_hours_{{employee.tabel_number}}_{{ data.pk }}_{{forloop.counter}}" list="attendance_list"></td>
+                      {%else%}
+                        <td><input style="width: 40px;" type="text" name="worked_hours_{{employee.tabel_number}}_{{ data.pk }}_{{forloop.counter}}" value="{{v}}" list="attendance_list"></td>
+                      {%endif%}
+                        <datalist id="attendance_list">
+                          {% for attend in attendance_full %}
+                            <option value="{{attend.name}}">														
+                          {% endfor %}
+                          </datalist>
+                        {%endif%}
+                      {%endfor%}
+                    {%endif%}
+                  {%endfor%}
+                {% for key, value in calculations.items %}
+                  {% comment %} {% if key == employee.name %} {% endcomment %}
+                  {% if key == employee.tabel_number %}
+                    {% for v in value.values %}
+                      {% if v == 0 %}
+                        <td></td>
+                      {% else %}
+                        <td>{{v}}</td>
+                      {% endif %}
+                    {% endfor %}
+                  {% endif %}
+                {% endfor %}
+            <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+					</tr>
+			{% endfor %}
+			
+      {% comment %} {% for employee in employees %}
         <tr>
           <td><a style="cursor: pointer;" id="delete-row-button" class="deletelink" data-custom-value="{{employee.tabel_number}}"></a> {{forloop.counter}}</td>
           <td> {{ employee.name}} {{employee.surname}} {{employee.middlename}}</td>
@@ -90,7 +141,6 @@
                 {% if data.date.month == month %}
                   {% if data.date.day == day %}
                     {% if data.employee_id.tabel_number == employee.tabel_number %}
-                      {% comment %} <td><input style = "width: 40px;" type="text" name="worked_hours_{{ data.pk }}_{{day}}_{{employee.tabel_number}}" value="{{data.worked_hours}}"></td> {% endcomment %}
                       {% if data.worked_hours == '' %}
                         <td><input style="width: 40px;" type="text" name="worked_hours_{{employee.tabel_number}}_{{ data.pk }}_{{day}}" list="attendance_list"></td>
                       {% else %}
@@ -132,7 +182,7 @@
           <td></td>
           <!--!-->
         </tr>  
-      {% endfor %}
+      {% endfor %} {% endcomment %}
     </tbody>
   </table>
 

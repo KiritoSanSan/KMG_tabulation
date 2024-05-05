@@ -91,7 +91,7 @@ class TimeTrackingAdmin(admin.ModelAdmin):
                     'worked_hours',
                     'date',
                     )
-        
+
 # @admin.register(GraphEmployeesList)
 # class GraphEmployeesListAdmin(admin.ModelAdmin):
 #     list_display = ('employee_id', 'graph_id')

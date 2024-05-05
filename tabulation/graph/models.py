@@ -54,6 +54,8 @@ class Employees(models.Model):
     job = models.ForeignKey(Job, verbose_name='Работа',related_name='job', on_delete=models.CASCADE)
     oil_place = models.ForeignKey('OilPlace',verbose_name='Месторождение', related_name='reservoir', on_delete=models.CASCADE)
     
+    
+
     @property
     def fullname(self):
         return f"{self.surname} {self.name} {self.middlename}"
@@ -71,13 +73,15 @@ class TimeTracking(models.Model):
     date = models.DateField(auto_now=False, auto_now_add=False, verbose_name = "Дата")
     worked_hours = models.CharField(max_length = 5, verbose_name = "Проработано часов",default="0",null=True)
 
+    
+
     class Meta:
         verbose_name = 'Контроль времени работников Графика'
         verbose_name_plural = "Контроль времени работников Графика"
-        # unique_together = ('date','employee_id')
+        unique_together = ('date','employee_id')
 
     def __str__(self) -> str:
-        return f"{self.id} {self.employee_id.name} {self.worked_hours}"
+        return f"{self.id} {self.employee_id.fullname} {self.worked_hours}"
         
 
 

@@ -6,14 +6,14 @@
 {% endblock %}
 
 {% block branding %}
-  <h1 id="site-name">Админ Панель</h1>
+  <a href="{% url 'admin:index' %}"><h1 id="site-name">Админ Панель</h1></a>
 {% endblock %}
 
 {% block breadcrumbs %}
 <div class="breadcrumbs">
   <a href="{% url 'admin:index' %}">Начало</a>
-  &rsaquo; <a href="/admin/tabel/">Tabel</a>
-  &rsaquo; <a href="/admin/tabel/tabel">Табеля</a>
+  &rsaquo; <a href="/admin/tabel/">Табеля</a>
+  &rsaquo; <a href="/admin/tabel/tabel">Список Табелей</a>
   &rsaquo; <a>Табель {{tabel.subdivision}} {{tabel.reservoir}} за {{selected_month}} {{year}}</a>
 </div>
 {% endblock %}
@@ -73,6 +73,67 @@
     </thead>
     <tbody>
       {% for employee in employees %}
+      <tr>
+        <td>{{forloop.counter}}</td>
+        <td>{{employee.surname}} {{employee.name}} {{employee.middlename}}</td>
+        <td>{{employee.job.name}} {{employee.job.description}}</td>
+        <td>{{employee.oil_place}}</td>
+        <td>{{employee.tariff_category}}</td>
+        {% comment %} {% for day in days %} {% endcomment %}
+          {%for key,value in time_tracking_dict.items%}
+              {%if key == employee.tabel_number %}
+                  {%for v in value%}
+                    {% if forloop.counter <= days|length %}
+                      <td>{{v}}</td>
+                    {%endif%}
+                  {%endfor%}
+              {%endif%}
+          {% comment %} {%endfor%} {% endcomment %}
+          {%endfor%}
+          {% comment %} {% for data in time_tracking %}
+            {% if data.date.year == year %}
+              {% if data.date.month == month %}
+                {% if data.employee_id.tabel_number == employee.tabel_number %}
+                  {% if data.date.day == day %}
+                    {% if data.worked_hours == '' %}
+                      <td>0</td>
+                    {% else %}
+                      <td>{{data.worked_hours}}</td>
+                    {% endif %}
+                  {% endif %}
+                {% endif %}
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+        {% endfor %} {% endcomment %}
+
+        {% for key, value in calculations.items %}
+            {% comment %} {% if key == employee.name %} {% endcomment %}
+            {% if key == employee.tabel_number %}
+              {% for v in value.values %}
+                {% if v == 0 %}
+                  <td></td>
+                {% else %}
+                  <td>{{v}}</td>
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+          {% endfor %}
+        <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+      {% comment %} {% for employee in employees %}
         <tr>
           <td> {{ forloop.counter }} </td>
           <td> {{ employee.name}} {{employee.surname}} {{employee.middlename}}</td>
@@ -86,7 +147,6 @@
                 {% if data.date.month == month %}
                   {% if data.date.day == day %}
                     {% if data.employee_id.tabel_number == employee.tabel_number %}
-                      {% comment %} <td>{{data.worked_hours}}</td> {% endcomment %}
                       {% if data.worked_hours == '' %}
                         <td>0</td>
                       {% else %}
@@ -126,7 +186,7 @@
           
       {% endfor %}
     </tbody>
-  </table>
+  </table> {% endcomment %}
 
   {% if perms.tabel.add_timetrackingtabel %}
   <form style="width: 10%;" method="post" action="/tabel_admin?tabel_pk={{tabel_pk}}" name='soglasovat' onsubmit="return confirmSubmit();">
