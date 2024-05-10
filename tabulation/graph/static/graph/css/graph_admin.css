@@ -6,6 +6,8 @@
 .admin_table td{
     border: 1px solid lightgrey;
 }
-
+.not-visible{
+    display: none;
+}
 
 

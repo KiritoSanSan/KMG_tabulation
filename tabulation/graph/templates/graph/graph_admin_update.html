@@ -1,3 +1,5 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
 {% extends "admin/base_site.html" %}
 {% load static %}
 {% load i18n %}
@@ -20,7 +22,14 @@
 {% endblock %}
 
 {% block content %}
-{{block.super}}
+{% comment %} {{block.super}} {% endcomment %}
+<!-- spinner loading page start --->
+<div id="spinner-box" class='text-center mt-3'>
+	<div class="spinner-border" role="status"></div>
+  </div>
+  
+  <div id='data-box' class='not-visible'>
+  <!-- spinner loading page end --->
 	<h1>График {{graph.subdivision}} {{graph.reservoir}} {{selected_month}} {{graph.year}}</h1>
   	<table class="admin_table">
 		<thead>
@@ -59,9 +68,9 @@
 								{%for v in value%}
 									{% if forloop.counter <= days|length %}
 										{%if v == ''%}
-											<td><input style="width: 40px;" type="text" name="worked_hours_{{employee.tabel_number}}_{{ data.pk }}_{{forloop.counter}}" list="attendance_list"></td>
+											<td><input style="width: 50px;" type="text" name="worked_hours_{{employee.tabel_number}}_{{ data.pk }}_{{forloop.counter}}" list="attendance_list"></td>
 										{%else%}
-											<td><input style="width: 40px;" type="text" name="worked_hours_{{employee.tabel_number}}_{{ data.pk }}_{{forloop.counter}}" value="{{v}}" list="attendance_list"></td>
+											<td><input style="width: 50px;" type="text" name="worked_hours_{{employee.tabel_number}}_{{ data.pk }}_{{forloop.counter}}" value="{{v}}" list="attendance_list"></td>
 										{%endif%}
 										<datalist id="attendance_list">
 											{% for attend in attendance_full %}
@@ -123,6 +132,7 @@
 		<a style="float: right;" href="{% url 'graph:graph_admin' %}">
 			<input type="button" value="Назад" class="default">
 		</a>
+	</div>
 		<script>
 			$(document).ready(function(){
 				$('input[name^="worked_hours_"]').on('input', function() {
@@ -229,5 +239,27 @@
 				});//
 			});
 		</script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script>
+
+const spinnerBox = document.getElementById('spinner-box')
+const dataBox = document.getElementById('data-box')
+
+$.ajax({
+  type:'GET',
+   url: '{% url 'graph:graph_admin_update' %}?{{ graph_pk }}',
+  success:function(response){
+    setTimeout(()=>{
+      spinnerBox.classList.add('not-visible')
+      dataBox.classList.remove('not-visible')
+    })
+    
+  },
+  error:function(error){
+    console.log(error)
+  }
+})
+</script>
+
 {% endblock %}
 
