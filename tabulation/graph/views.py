@@ -181,44 +181,7 @@ def graph_admin(request):
         graph_pk = request.GET['graph_pk']
         request.session['chosen_pk'] = graph_pk
         
-    if request.method == 'POST':
-        if 'approve_graph' in request.POST:
-            graph_pk = request.POST.get('graph_pk')
-            graph_inst = Graph.objects.get(pk=graph_pk)
-            employees_graph = graph_inst.employees.all()
-            tracking = TimeTracking.objects.filter(date__year=int(graph_inst.year), date__month=int(graph_inst.month)).select_related('employee_id')
-            try:
-                tabel_instance = Tabel.objects.get(
-                    reservoir=graph_inst.reservoir,
-                    subdivision=graph_inst.subdivision,
-                    month=graph_inst.month,
-                    year=graph_inst.year,
-                )
-                if tabel_instance:
-                    messages.error(request,'Табель уже согласован')
-            except ObjectDoesNotExist:
-                tabel_instance = Tabel.objects.create(
-                    reservoir=graph_inst.reservoir,
-                    subdivision=graph_inst.subdivision,
-                    month=graph_inst.month,
-                    year=graph_inst.year,
-                )
-                for employee in employees_graph:
-                    time_tracking = time_tracking.filter(employee_id=employee)
-                    employee_instance = Employees.objects.get(pk=employee.tabel_number)
-                    for value in time_tracking:
-                        TimeTrackingTabel.objects.bulk_create(
-                            [
-                                TimeTrackingTabel(
-                                    employee_id = employee_instance,
-                                    date = value['date'],
-                                    worked_hours = value['worked_hours']
-                                )
-                        ]
-                        )
-                tabel_instance.employees.set(employees_graph)
-                messages.success(request,'Табель согласован')
-                return redirect('admin:tabel_tabel_changelist')
+    
     graph_pk = request.session['chosen_pk']  
     graph = Graph.objects.get(pk=graph_pk)
     employees = graph.employees.all()
@@ -259,7 +222,68 @@ def graph_admin(request):
         employee_id = work.employee_id.tabel_number
         day_index = days.index(work.date.day)
         time_tracking_dict[int(employee_id)][day_index] = work.worked_hours
-
+    
+    #creating table
+    if request.method == 'POST':
+        if 'approve_graph' in request.POST:
+            graph_pk = request.POST.get('graph_pk')
+            graph_inst = Graph.objects.get(pk=graph_pk)
+            employees_graph = graph_inst.employees.all()
+            tracking = TimeTracking.objects.filter(date__year=int(graph_inst.year), date__month=int(graph_inst.month)).select_related('employee_id')
+            try:
+                tabel_instance = Tabel.objects.get(
+                    reservoir=graph_inst.reservoir,
+                    subdivision=graph_inst.subdivision,
+                    month=graph_inst.month,
+                    year=graph_inst.year,
+                )
+                if tabel_instance:
+                    messages.error(request,'Табель уже согласован')
+            except ObjectDoesNotExist:
+                tabel_instance = Tabel.objects.create(
+                    reservoir=graph_inst.reservoir,
+                    subdivision=graph_inst.subdivision,
+                    month=graph_inst.month,
+                    year=graph_inst.year,
+                )
+                time_tracking_dict_tabel = {}
+                for employee in employees_graph:
+                    list = []
+                    for day in days:
+                        list.append(0)
+                    time_tracking_dict_tabel[int(f'{employee.tabel_number}')] = list
+                for work in tracking:
+                    employee_id = work.employee_id.tabel_number
+                    day_index = days.index(work.date.day)
+                    time_tracking_dict_tabel[int(employee_id)][day_index] = work.worked_hours
+                # Create TimeTrackingTabel instances in bulk
+                time_tracking_tabel_instances = []
+                for employee_id, values in time_tracking_dict_tabel.items():
+                    for day_index, worked_hours in enumerate(values):
+                        time_tracking_tabel_instances.append(TimeTrackingTabel(
+                            employee_id=Employees.objects.get(tabel_number=employee_id),
+                            date=datetime.datetime(int(graph_inst.year), int(graph_inst.month), days[day_index]),
+                            worked_hours=worked_hours
+                        ))
+                # print(time_tracking_tabel_instances)
+                TimeTrackingTabel.objects.bulk_create(time_tracking_tabel_instances)
+                tabel_instance.employees.set(employees_graph)
+                # for employee in employees_graph:
+                #     time_tracking = time_tracking.filter(employee_id=employee)
+                #     employee_instance = Employees.objects.get(pk=employee.tabel_number)
+                #     for value in time_tracking:
+                #         TimeTrackingTabel.objects.bulk_create(
+                #             [
+                #                 TimeTrackingTabel(
+                #                     employee_id = employee_instance,
+                #                     date = value['date'],
+                #                     worked_hours = value['worked_hours']
+                #                 )
+                #         ]
+                #         )
+                
+                messages.success(request,'Табель согласован')
+                return redirect('admin:tabel_tabel_changelist')
     context = {
         'graph_pk':graph_pk,
         "year":year,

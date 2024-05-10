@@ -42,9 +42,9 @@ class TimeTrackingTabel(models.Model):
     worked_hours = models.CharField(max_length = 5, verbose_name = "Проработано часов",default="0",null=True)
 
     class Meta:
-        verbose_name = 'Контроль времени работников Табеля'
-        verbose_name_plural = "Контроль времени работников Табеля"
-        # unique_together = ('date','employee_id')
+        verbose_name = 'Контроль времени работников согласованного Табеля'
+        verbose_name_plural = "Контроль времени работников согласованного Табеля"
+        unique_together = ('date','employee_id')
 
     def __str__(self) -> str:
         return f"{self.id} {self.employee_id.name} {self.worked_hours}"
@@ -78,9 +78,9 @@ class TabelApprovedTimeTracking(models.Model):
     worked_hours = models.CharField(max_length = 5, verbose_name = "Проработано часов",default="0",null=True)
 
     class Meta:
-        verbose_name = 'Контроль времени работников Табеля'
-        verbose_name_plural = "Контроль времени работников Табеля"
-        # unique_together = ('date','employee_id')
+        verbose_name = 'Контроль времени работников утверджающего Табеля'
+        verbose_name_plural = "Контроль времени работников утверджающего Табеля"
+        unique_together = ('date','employee_id')
 
     def __str__(self) -> str:
         return f"{self.id} {self.employee_id.name} {self.worked_hours}"
