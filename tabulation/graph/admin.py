@@ -15,7 +15,8 @@ from django.contrib.admin.utils import quote
 
     
 
-
+admin.autodiscover()
+# admin.site.enable_nav_sidebar = False
 
 @admin.register(Job)
 class JobAdmin(admin.ModelAdmin):

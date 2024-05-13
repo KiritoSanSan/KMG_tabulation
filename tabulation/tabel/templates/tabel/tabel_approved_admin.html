@@ -1,5 +1,3 @@
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-
 {% extends "admin/base_site.html" %}
 {% load static %}
 
@@ -59,10 +57,11 @@
           <td>{{n.name}}</td>
         {% endfor %}
         <td rowspan="2" class='vertical'>Отработанное количество часов</td>
+        <td rowspan="2" class='vertical'>ночных</td>
         <td rowspan="2" class='vertical'>ремонтных</td>
         <td rowspan="2" class='vertical'>праздничных</td>
         <td rowspan="2" class='vertical'>выходных</td>
-        <td rowspan="2" class='vertical'>ночных</td>
+        
         <td rowspan="2" class='vertical'>сверхурочных</td>
         <td colspan="2">во вредных условиях труда</td>
       </tr>
@@ -137,7 +136,7 @@
           <td></td>
           <td></td>
           <td></td>
-          <td></td>
+          {% comment %} <td></td> {% endcomment %}
       </tr>
     {% endfor %}
     </tbody>
@@ -157,7 +156,7 @@
   
   $.ajax({
     type:'GET',
-     url: '{% url 'tabel:tabel_approved_admin' %}?{{ tabel_pk }}',
+     url: '{% url "tabel:tabel_approved_admin" %}?{{ tabel_pk }}',
     success:function(response){
       setTimeout(()=>{
         spinnerBox.classList.add('not-visible')

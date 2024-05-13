@@ -10,4 +10,29 @@
     display: none;
 }
 
+#spinner-box{
+    position: absolute;
+    left: 60%;
+    top: 50%;
+    text-align: center;
+    /* z-index: 1; */
+    width: 60px;
+    height: 60px;
+    /* margin: -76px 0 0 -76px; */
+    border: 16px solid #c8c4c4;
+    border-radius: 50%;
+    border-top: 16px solid #488cc7;
+    -webkit-animation: spin 2s linear infinite;
+    animation: spin 2s linear infinite;
+}
+@-webkit-keyframes spin {
+    0% { -webkit-transform: rotate(0deg); }
+    100% { -webkit-transform: rotate(360deg); }
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
 

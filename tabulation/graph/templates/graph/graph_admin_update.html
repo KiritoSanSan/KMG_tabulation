@@ -1,4 +1,3 @@
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
 
 {% extends "admin/base_site.html" %}
 {% load static %}
@@ -133,6 +132,24 @@
 			<input type="button" value="Назад" class="default">
 		</a>
 	</div>
+	<script>
+		function closeSidebar() {
+		  // Find the sidebar toggle button
+		  const sidebarToggle = document.getElementById('nav-sidebar');
+		  const sidebarMain = document.getElementById('main')
+		  if (window.location.href === "/graph_admin_update"){
+		  if (sidebarMain){
+			if (sidebarToggle) {
+			  // Set aria-expanded to false
+			  
+			  sidebarMain.classList.remove('main shifted')
+			  sidebarMain.classList.add('main')
+			  sidebarToggle.setAttribute('aria-expanded', 'false');
+			}
+		  }
+		  }
+		}
+	  </script>
 		<script>
 			$(document).ready(function(){
 				$('input[name^="worked_hours_"]').on('input', function() {
@@ -247,7 +264,7 @@ const dataBox = document.getElementById('data-box')
 
 $.ajax({
   type:'GET',
-   url: '{% url 'graph:graph_admin_update' %}?{{ graph_pk }}',
+   url: '{% url "graph:graph_admin_update" %}?{{ graph_pk }}',
   success:function(response){
     setTimeout(()=>{
       spinnerBox.classList.add('not-visible')

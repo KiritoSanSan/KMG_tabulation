@@ -123,6 +123,7 @@ def sidebar(request):
 
     data = {
         "has_permission": True,
+        "is_popup": False,
         "available_apps": available_apps,
         "site_title": admin_site.site_title,
         "site_header": admin_site.site_header,
@@ -465,6 +466,11 @@ def graph_admin_update(request):
     
     #adding admin side bar
     context.update(sidebar(request))
+    # graph_update_sidebar = {
+    #     "is_nav_sidebar_enabled": False,
+    #     "is_popup": True,
+    #     }
+    # context.update(graph_update_sidebar)
 
     return render(request,'graph/graph_admin_update.html',context)
 
@@ -477,213 +483,212 @@ def upload_file(request):
         'formatted': False
     }
     months = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь']
-    try:
-        if request.method == 'POST' and request.FILES['file']:
-            uploaded_file = request.FILES['file']
-            # Do something with the uploaded file
-            if uploaded_file.name.endswith('.xlsx'):
-                load_workbook = lw(uploaded_file,data_only=True)
-                graph = load_workbook.active
+    if request.method == 'POST' and request.FILES['file']:
+        uploaded_file = request.FILES['file']
+        # Do something with the uploaded file
+        if uploaded_file.name.endswith('.xlsx'):
+            load_workbook = lw(uploaded_file,data_only=True)
+            graph = load_workbook.active
 
-                data_length = 0
-                while isinstance(graph['A' + str(5 + data_length)].value, int):
-                    data_length += 1
-                # print(data_length)
-                row_num = 4
-                list_values = [str(x.value).lower() for x in graph['A']]
-                list_values = list_values[3:]
-                month = 1
-                for j in range(1,len(months)+1):
-                    for value in list_values:
-                        if any(month in value for month in months):
-                            table_data['month'] = value.capitalize()
-                            list_values = list_values[data_length+1:]
-                            break
-                    for n in range(data_length+1):
-                        row_num +=1
-                        list = [x.value for x in graph[row_num]]
-                        if list.count(None) > 3:
-                            break
-                        table_data['data'].append(list) 
-                    for i in table_data['data']:
-                        #adding job start
-                        job_name = i[2].split(' ', 1)
-                        if len(job_name) != 2:
-                            job_name.append(' ')
-                        elif job_name[0] == '':
-                            job_name_temp = job_name[0].split(' ',1)
-                            if len(job_name_temp) == 2:
-                                job_name[0]=job_name_temp[0]
-                                job_name[1]=job_name_temp[1]
-                            else:
-                                job_name[0]=job_name_temp[0]
-                                job_name[1]=' '
-                        try:
-                            job_instance = Job.objects.get(name=job_name[0])
-                        except:
-                            if job_name[0] != '':  
-                                Job.objects.create(
-                                    name=job_name[0],
-                                    description=job_name[1]
-                                )
-                    #adding job end
-
-                        ###
-                    #adding oil_place start
-                    for i in table_data['data']:
-                        
-                        reservoir_name = i[3]
-                        try:
-                            reservoir_inst = OilPlace.objects.get(name=reservoir_name)
-                        except:
-                            OilPlace.objects.create(
-                                name=reservoir_name
-                            )
-
-                    #adding oil_place end
-                    
-                    #adding employee start
-                    count=1
-                    for i in table_data['data']:
-                        
-                        employee_excel = i[1].split()
-                        if len(employee_excel) == 2:
-                            employee_excel.append(' .')
-                        elif len(employee_excel) == 1:
-                            employee_excel.append(' .')
-                            employee_excel.append(' .')
-                        try:
-                            employee_inst = Employees.objects.get(
-                                name = employee_excel[0],
-                                surname = employee_excel[1],
-                                middlename = employee_excel[2]
-                            )
-                        except:
-                            empl_job = i[2].split(' ',1)
-                            if empl_job:
-                                try:
-                                    job_inst = Job.objects.get(
-                                        name=empl_job[0]
-                                    )
-                                except:
-                                    continue
-                            empl_oilplace = i[3]
-                            if empl_oilplace:
-                                try:
-                                    oilplace_inst = OilPlace.objects.get(
-                                        name=empl_oilplace
-                                    )
-                                except:
-                                    continue
-                            tarrif_category = len(i[4])
-
-                            Employees.objects.create(
-                                tabel_number = count,
-                                name = employee_excel[0],
-                                surname = employee_excel[1],
-                                middlename = employee_excel[2],
-                                tariff_category=tarrif_category,
-                                job=job_inst,
-                                oil_place=oilplace_inst
-                            )
-                            count+=1
-                        #employee add end                    
-                    table_data_month = table_data['month'].split()
-                    # print(table_data_month)
-                    # print(len(table_data_month))
-                    graph_month = russian_month_to_int(table_data_month[0])
-                    graph_year =  int(table_data_month[1])                    
-                    graph_inst = None
+            data_length = 0
+            while isinstance(graph['A' + str(5 + data_length)].value, int):
+                data_length += 1
+            # print(data_length)
+            row_num = 4
+            list_values = [str(x.value).lower() for x in graph['A']]
+            list_values = list_values[3:]
+            month = 1
+            for j in range(1,len(months)+1):
+                for value in list_values:
+                    if any(month in value for month in months):
+                        table_data['month'] = value.capitalize()
+                        list_values = list_values[data_length+1:]
+                        break
+                for n in range(data_length+1):
+                    row_num +=1
+                    list = [x.value for x in graph[row_num]]
+                    if list.count(None) > 3:
+                        break
+                    table_data['data'].append(list) 
+                for i in table_data['data']:
+                    #adding job start
+                    job_name = i[2].split(' ', 1)
+                    if len(job_name) != 2:
+                        job_name.append(' ')
+                    elif job_name[0] == '':
+                        job_name_temp = job_name[0].split(' ',1)
+                        if len(job_name_temp) == 2:
+                            job_name[0]=job_name_temp[0]
+                            job_name[1]=job_name_temp[1]
+                        else:
+                            job_name[0]=job_name_temp[0]
+                            job_name[1]=' '
                     try:
-                        graph_inst = Graph.objects.get(
-                            month= graph_month,
-                            year = graph_year
+                        job_instance = Job.objects.get(name=job_name[0])
+                    except:
+                        if job_name[0] != '':  
+                            Job.objects.create(
+                                name=job_name[0],
+                                description=job_name[1]
+                            )
+                #adding job end
+
+                    ###
+                #adding oil_place start
+                for i in table_data['data']:
+                    
+                    reservoir_name = i[3]
+                    try:
+                        reservoir_inst = OilPlace.objects.get(name=reservoir_name)
+                    except:
+                        OilPlace.objects.create(
+                            name=reservoir_name
+                        )
+
+                #adding oil_place end
+                
+                #adding employee start
+                count=1
+                for i in table_data['data']:
+                    
+                    employee_excel = i[1].split()
+                    if len(employee_excel) == 2:
+                        employee_excel.append(' .')
+                    elif len(employee_excel) == 1:
+                        employee_excel.append(' .')
+                        employee_excel.append(' .')
+                    try:
+                        employee_inst = Employees.objects.get(
+                            name = employee_excel[0],
+                            surname = employee_excel[1],
+                            middlename = employee_excel[2]
                         )
                     except:
-                        oilplace_inst = OilPlace.objects.get(name='Ботахан')
-                        subdivision_inst = Subdivision.objects.get(name='БДН')
-                        Graph.objects.create(
-                            month = graph_month,
-                            year = graph_year,
-                            reservoir = oilplace_inst,
-                            subdivision = subdivision_inst
+                        empl_job = i[2].split(' ',1)
+                        if empl_job:
+                            try:
+                                job_inst = Job.objects.get(
+                                    name=empl_job[0]
+                                )
+                            except:
+                                continue
+                        empl_oilplace = i[3]
+                        if empl_oilplace:
+                            try:
+                                oilplace_inst = OilPlace.objects.get(
+                                    name=empl_oilplace
+                                )
+                            except:
+                                continue
+                        tarrif_category = len(i[4])
+
+                        Employees.objects.create(
+                            tabel_number = count,
+                            name = employee_excel[0],
+                            surname = employee_excel[1],
+                            middlename = employee_excel[2],
+                            tariff_category=tarrif_category,
+                            job=job_inst,
+                            oil_place=oilplace_inst
                         )
+                        count+=1
+                    #employee add end                    
+                table_data_month = table_data['month'].split()
+                # print(table_data_month)
+                # print(len(table_data_month))
+                graph_month = russian_month_to_int(table_data_month[0])
+                graph_year =  int(table_data_month[1])                    
+                graph_inst = None
+                employee_inst = None
+                try:
+                    graph_inst = Graph.objects.get(
+                        month= graph_month,
+                        year = graph_year
+                    )
+                except:
+                    oilplace_inst = OilPlace.objects.get(name='Ботахан')
+                    subdivision_inst = Subdivision.objects.get(name='БДН')
+                    Graph.objects.create(
+                        month = graph_month,
+                        year = graph_year,
+                        reservoir = oilplace_inst,
+                        subdivision = subdivision_inst
+                    )
+                for row in table_data['data']:
+                    employee_excel = row[1].split()
+                    if len(employee_excel) == 2:
+                        employee_excel.append(' .')
+                    elif len(employee_excel) == 1:
+                        employee_excel.append(' .')
+                        employee_excel.append(' .')
+                    try:
+                        employee_inst = Employees.objects.get(
+                            name = employee_excel[0],
+                            surname = employee_excel[1],
+                            middlename = employee_excel[2]
+                        )
+                    except:
+                        continue
+                    if graph_inst is not None and not graph_inst.employees.filter(tabel_number=employee_inst.tabel_number).exists():
+                        graph_inst.employees.add(employee_inst)
+                    graph_inst.save()
+
+                    table_data_month = table_data['month'].split(' ')
+                    #timetracking add start
                     for row in table_data['data']:
+                        count_day = 1
+                        length = len(row)
                         employee_excel = row[1].split()
                         if len(employee_excel) == 2:
                             employee_excel.append(' .')
                         elif len(employee_excel) == 1:
                             employee_excel.append(' .')
                             employee_excel.append(' .')
-                        try:
-                            employee_inst = Employees.objects.get(
-                                name = employee_excel[0],
-                                surname = employee_excel[1],
-                                middlename = employee_excel[2]
-                            )
-                        except:
-                            continue
-                        if graph_inst is not None and not graph_inst.employees.filter(tabel_number=employee_inst.tabel_number).exists():
-                            graph_inst.employees.add(employee_inst)
-                            graph_inst.save()
-
-                        table_data_month = table_data['month'].split(' ')
-                        #timetracking add start
-                        for row in table_data['data']:
-                            count_day = 1
-                            length = len(row)
-                            employee_excel = row[1].split()
-                            if len(employee_excel) == 2:
-                                employee_excel.append(' .')
-                            elif len(employee_excel) == 1:
-                                employee_excel.append(' .')
-                                employee_excel.append(' .')
+                            try:
+                                employee_inst = Employees.objects.get(
+                                    name = employee_excel[0],
+                                    surname = employee_excel[1],
+                                    middlename = employee_excel[2]
+                                )
+                            except:
+                                continue
+                        graph_year = 2023
+                        if len(table_data_month) == 3:
+                            graph_year = int(table_data_month[1])
+                        else:
+                            graph_year = int(table_data_month[2])
+                        graph_month = russian_month_to_int(table_data_month[0])
+                        
+                        print('graph_month ',graph_month)
+                        # Get the number of days in the current month
+                        num_days_in_month = calendar.monthrange(graph_year, graph_month)[1]
+                        
+                        for value in row[5:length-4]:
+                            # while count_day <= num_days_in_month:
                                 try:
-                                    employee_inst = Employees.objects.get(
-                                        name = employee_excel[0],
-                                        surname = employee_excel[1],
-                                        middlename = employee_excel[2]
+                                    timetracking_inst = TimeTracking.objects.get(
+                                        employee_id = employee_inst,
+                                        date=datetime.datetime(2023,graph_month,count_day)
                                     )
                                 except:
-                                    continue
-                            graph_year = 2023
-                            if len(table_data_month) == 3:
-                                graph_year = int(table_data_month[1])
-                            else:
-                                graph_year = int(table_data_month[2])
-                            graph_month = russian_month_to_int(table_data_month[0])
-                            
-                            print('graph_month ',graph_month)
-                            # Get the number of days in the current month
-                            num_days_in_month = calendar.monthrange(graph_year, graph_month)[1]
-                            
-                            for value in row[5:length-4]:
-                                # while count_day <= num_days_in_month:
-                                    try:
-                                        timetracking_inst = TimeTracking.objects.get(
+                                    print('month ',month,' day ',count_day)
+                                    if value is not None:
+                                        TimeTracking.objects.create(
                                             employee_id = employee_inst,
-                                            date=datetime.datetime(2023,graph_month,count_day)
+                                            date=datetime.datetime(2023,graph_month,count_day),
+                                            worked_hours = value
                                         )
-                                    except:
-                                        print('month ',month,' day ',count_day)
-                                        if value is not None:
-                                            TimeTracking.objects.create(
-                                                employee_id = employee_inst,
-                                                date=datetime.datetime(2023,graph_month,count_day),
-                                                worked_hours = value
-                                            )
-                                    count_day+=1
-                                
-                                # if  count_day > num_days_in_month:
-                                #     count_day=1
+                                count_day+=1
+                            
+                            # if  count_day > num_days_in_month:
+                            #     count_day=1
 
-                        graph_month = (graph_month % 12) + 1
-
-                    table_data['data'].clear()
-            else:
-                messages.error(request,'файл не xlsx формата :(')
-    except:
-        messages.error(request,'Вы не прикрепили файл')
+                    graph_month = (graph_month % 12) + 1
+                # print(table_data)
+                table_data['data'].clear()
+        else:
+            messages.error(request,'файл не xlsx формата :(')
+        # messages.error(request,'Вы не прикрепили файл')
     context = {}
     context.update(sidebar(request))
     return render(request,'graph/parsing_graph.html',context)

@@ -66,6 +66,7 @@ def tabel_admin(request):
             pairs.append((f'{att}', 0))
         pairs.append(('days_in_month', len(days)))
         pairs.append(('total_work_hours', 0))
+        pairs.append(('night_work',0))
         directory[int(f'{employee.tabel_number}')] = dict(pairs)
 
     # for employee in employees:
@@ -74,9 +75,19 @@ def tabel_admin(request):
             if str(work.worked_hours).isdigit():
                 directory[int(f'{work.employee_id.tabel_number}')]['worked_days'] += 1
                 directory[int(f'{work.employee_id.tabel_number}')]['total_work_hours'] += int(work.worked_hours)
+            
+            #night worked hours
+            sep = work.worked_hours.split('/')
+            if len(sep)==2:
+                if str(sep[1]).isdigit():
+                    directory[int(f'{work.employee_id.tabel_number}')]['night_work'] +=int(sep[1])
+                    directory[int(f'{work.employee_id.tabel_number}')]['total_work_hours'] += int(sep[0])
+            #
+
             for dir in directory[int(f'{work.employee_id.tabel_number}')].keys():
                 if dir == work.worked_hours:
                     directory[int(f'{work.employee_id.tabel_number}')][f'{dir}'] += 1
+    print(directory)
     time_tracking_dict = {}
     for employee in employees:
         list = []
@@ -308,6 +319,7 @@ def tabel_admin_update(request):
             pairs.append((f'{att}', 0))
         pairs.append(('days_in_month', len(days)))
         pairs.append(('total_work_hours', 0))
+        pairs.append(('night_work',0))
         directory[int(f'{employee.tabel_number}')] = dict(pairs)
 
     # for employee in employees:
@@ -316,10 +328,19 @@ def tabel_admin_update(request):
         if str(work.worked_hours).isdigit():
             directory[int(f'{work.employee_id.tabel_number}')]['worked_days'] += 1
             directory[int(f'{work.employee_id.tabel_number}')]['total_work_hours'] += int(work.worked_hours)
+            
+            #night worked hours
+            sep = work.worked_hours.split('/')
+            if len(sep)==2:
+                if str(sep[1]).isdigit():
+                    directory[int(f'{work.employee_id.tabel_number}')]['night_work'] +=int(sep[1])
+                    directory[int(f'{work.employee_id.tabel_number}')]['total_work_hours'] += int(sep[0])
+            #
+        
         for dir in directory[int(f'{work.employee_id.tabel_number}')].keys():
             if dir == work.worked_hours:
                 directory[int(f'{work.employee_id.tabel_number}')][f'{dir}'] += 1
-
+    print(directory)
     context = {
         'graph_pk':tabel_pk,
         "year":year,
@@ -388,12 +409,15 @@ def tabel_approved_admin(request):
     for employee in employees:
         pairs = []
         pairs.append(('worked_days', 0))
+        #
+        #
         for att in attendance:
             pairs.append((f'{att}', 0))
         for att in no_attendance:
             pairs.append((f'{att}', 0))
         pairs.append(('days_in_month', len(days)))
         pairs.append(('total_work_hours', 0))
+        pairs.append(('night_work',0))
         directory[int(f'{employee.tabel_number}')] = dict(pairs)
 
     # for employee in employees:
@@ -402,6 +426,13 @@ def tabel_approved_admin(request):
         if str(work.worked_hours).isdigit():
             directory[int(f'{work.employee_id.tabel_number}')]['worked_days'] += 1
             directory[int(f'{work.employee_id.tabel_number}')]['total_work_hours'] += int(work.worked_hours)
+        #night worked hours
+        sep = work.worked_hours.split('/')
+        if len(sep)==2:
+            if str(sep[1]).isdigit():
+                directory[int(f'{work.employee_id.tabel_number}')]['night_work'] +=int(sep[1])
+                directory[int(f'{work.employee_id.tabel_number}')]['total_work_hours'] += int(sep[0])
+            #
         for dir in directory[int(f'{work.employee_id.tabel_number}')].keys():
             if dir == work.worked_hours:
                 directory[int(f'{work.employee_id.tabel_number}')][f'{dir}'] += 1
