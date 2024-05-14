@@ -199,6 +199,7 @@ def graph_admin(request):
     list_att = []
     for each in full_attendance:
         list_att.append(each.name)
+    # print(list_att)
     directory = {}
     for employee in employees:
         pairs = [('worked_days', 0), ('weekends', 0), ('days_in_month', len(days)), ('total_work_hours', 0)]
@@ -225,7 +226,7 @@ def graph_admin(request):
             # elif not str(work.worked_hours).isdigit():
             else:
                 directory[int(f'{work.employee_id.tabel_number}')]['weekends'] += 1
-                # directory[int(f'{employee.tabel_number}')]['weekends'] += 1
+
 
     time_tracking_dict = {}
     for employee in employees:
@@ -437,6 +438,7 @@ def graph_admin_update(request):
         TimeTracking.objects.bulk_update(tracking, ['worked_hours'])
 
 
+        # print(time_tracking_dict)
         # print(time_tracking_dict)
         return redirect(reverse('graph:graph_admin') +f'?graph_pk={graph_pk}')
     
@@ -685,7 +687,7 @@ def upload_file(request):
                             graph_year = int(table_data_month[2])
                         graph_month = russian_month_to_int(table_data_month[0])
                         
-                        print('graph_month ',graph_month)
+                        # print('graph_month ',graph_month)
                         # Get the number of days in the current month
                         num_days_in_month = calendar.monthrange(graph_year, graph_month)[1]
                         
@@ -697,7 +699,7 @@ def upload_file(request):
                                         date=datetime.datetime(2023,graph_month,count_day)
                                     )
                                 except:
-                                    print('month ',month,' day ',count_day)
+                                    # print('month ',month,' day ',count_day)
                                     if value is not None:
                                         TimeTracking.objects.create(
                                             employee_id = employee_inst,

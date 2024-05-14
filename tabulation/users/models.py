@@ -6,6 +6,7 @@ from .managers import *
 # Create your models here.
 class CustomUser(AbstractUser, PermissionsMixin):
     email = models.EmailField(verbose_name="Почта",max_length=100,null=True,unique=True)
+    iin = models.CharField(verbose_name='IIN',max_length=13,unique=True)
     first_name = models.CharField(max_length=100,verbose_name="Имя")
     last_name = models.CharField(max_length=100,verbose_name="Фамилия")
     is_staff = models.BooleanField(default=False)
