@@ -199,7 +199,6 @@ def graph_admin(request):
     list_att = []
     for each in full_attendance:
         list_att.append(each.name)
-    print(list_att)
     directory = {}
     for employee in employees:
         pairs = [('worked_days', 0), ('weekends', 0), ('days_in_month', len(days)), ('total_work_hours', 0)]
@@ -213,11 +212,9 @@ def graph_admin(request):
                 directory[int(f'{work.employee_id.tabel_number}')]['total_work_hours'] += int(work.worked_hours)
                 # directory[int(f'{employee.tabel_number}')]['worked_days'] += 1 
                 # directory[int(f'{employee.tabel_number}')]['total_work_hours'] += int(work.worked_hours)
-            
-            elif (work.worked_hours.find('/')):
+            elif ('/' in work.worked_hours):
                 sep = work.worked_hours.split('/')
                 if len(sep)==2:
-                    
                     if str(sep[0]).isdigit():
                         directory[int(f'{work.employee_id.tabel_number}')]['total_work_hours'] += int(sep[0])
                         directory[int(f'{work.employee_id.tabel_number}')]['worked_days'] += 1 
@@ -225,8 +222,8 @@ def graph_admin(request):
                             # directory[int(f'{work.employee_id.tabel_number}')]['night_work'] +=int(sep[1])
                             pass
 
-            elif (work.worked_hours in list_att):
-                print('contains')
+            # elif not str(work.worked_hours).isdigit():
+            else:
                 directory[int(f'{work.employee_id.tabel_number}')]['weekends'] += 1
                 # directory[int(f'{employee.tabel_number}')]['weekends'] += 1
 
@@ -440,7 +437,7 @@ def graph_admin_update(request):
         TimeTracking.objects.bulk_update(tracking, ['worked_hours'])
 
 
-        print(time_tracking_dict)
+        # print(time_tracking_dict)
         return redirect(reverse('graph:graph_admin') +f'?graph_pk={graph_pk}')
     
     name_month_en = calendar.month_name[int(month)]
@@ -459,11 +456,22 @@ def graph_admin_update(request):
             if str(work.worked_hours).isdigit():
                 directory[int(f'{work.employee_id.tabel_number}')]['worked_days'] += 1 
                 directory[int(f'{work.employee_id.tabel_number}')]['total_work_hours'] += int(work.worked_hours)
+                # directory[int(f'{employee.tabel_number}')]['worked_days'] += 1 
+                # directory[int(f'{employee.tabel_number}')]['total_work_hours'] += int(work.worked_hours)
+            elif ('/' in work.worked_hours):
+                sep = work.worked_hours.split('/')
+                if len(sep)==2:
+                    if str(sep[0]).isdigit():
+                        directory[int(f'{work.employee_id.tabel_number}')]['total_work_hours'] += int(sep[0])
+                        directory[int(f'{work.employee_id.tabel_number}')]['worked_days'] += 1 
+                        if str(sep[1]).isdigit():
+                            # directory[int(f'{work.employee_id.tabel_number}')]['night_work'] +=int(sep[1])
+                            pass
+
+            # elif not str(work.worked_hours).isdigit():
             else:
                 directory[int(f'{work.employee_id.tabel_number}')]['weekends'] += 1
-
-# Batch update the worked hours for all relevant works
-
+                # directory[int(f'{employee.tabel_number}')]['weekends'] += 1
     context = {
         'employees_all': search_employee,
         'graph_pk':graph_pk,

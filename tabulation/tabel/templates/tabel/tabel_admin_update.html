@@ -103,7 +103,7 @@
                         <td><input style="width: 40px;" type="text" name="worked_hours_{{employee.tabel_number}}_{{ data.pk }}_{{forloop.counter}}" value="{{v}}" list="attendance_list"></td>
                       {%endif%}
                         <datalist id="attendance_list">
-                          {% for attend in attendance_full %}
+                          {% for attend in full_attendance %}
                             <option value="{{attend.name}}">														
                           {% endfor %}
                           </datalist>

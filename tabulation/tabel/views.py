@@ -88,7 +88,7 @@ def tabel_admin(request):
             for dir in directory[int(f'{work.employee_id.tabel_number}')].keys():
                 if dir == work.worked_hours:
                     directory[int(f'{work.employee_id.tabel_number}')][f'{dir}'] += 1
-    print(directory)
+    # print(directory)
     time_tracking_dict = {}
     for employee in employees:
         list = []
