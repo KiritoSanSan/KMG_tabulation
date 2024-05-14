@@ -17,9 +17,6 @@
 .not-visible{
     display: none;
 }
-.module {
-    margin-bottom: 0px;
-}
 #spinner-box{
     position: absolute;
     left: 60%;
