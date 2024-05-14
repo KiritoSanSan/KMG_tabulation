@@ -226,12 +226,26 @@
       
       $('input[name^="worked_hours_' + employee_tabel_number + '_' + '"]').each(function() {
         var worked_hours = $(this).val();
-        if ($.isNumeric(worked_hours)) {
+        if ($.isNumeric(worked_hours) || (worked_hours.indexOf('/')!==-1)) {
             totalWorkedHours += parseFloat(worked_hours);
             if (worked_hours !== '0') {
               totalWorkedDays++;
             }
         }
+        if (worked_hours.indexOf('/')!==-1){
+          let night_hours = worked_hours.split('/')
+          if (night_hours.length === 2){
+            totalNightHours+=parseInt(night_hours[1]);
+            if (night_hours!=='0'){
+              totalWorkedDays++;
+            }
+          }
+          else{
+            totalNightHours+=parseInt(0);
+          }
+          
+        }
+
         
         for (let k in variables) {
           if (k === worked_hours){
@@ -251,7 +265,9 @@
 
         }
       }
-      $(this).closest('tr').find('td').eq(-11).text(totalWorkedHours); 
+      $(this).closest('tr').find('td').eq(-12).text(totalWorkedHours); 
+      //$(this).closest('tr').find('td').eq(-10).text(totalNightHours); 
+      
     });
 
     $(".deletelink").click(function() {

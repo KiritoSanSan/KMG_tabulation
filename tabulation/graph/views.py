@@ -195,6 +195,11 @@ def graph_admin(request):
     num_days = calendar.monthrange(int(year),int(month))[1]
     days = range(1,num_days+1)
     #attendace calculation start
+    full_attendance = Attendance.objects.all().iterator()
+    list_att = []
+    for each in full_attendance:
+        list_att.append(each.name)
+    print(list_att)
     directory = {}
     for employee in employees:
         pairs = [('worked_days', 0), ('weekends', 0), ('days_in_month', len(days)), ('total_work_hours', 0)]
@@ -208,7 +213,20 @@ def graph_admin(request):
                 directory[int(f'{work.employee_id.tabel_number}')]['total_work_hours'] += int(work.worked_hours)
                 # directory[int(f'{employee.tabel_number}')]['worked_days'] += 1 
                 # directory[int(f'{employee.tabel_number}')]['total_work_hours'] += int(work.worked_hours)
-            else:
+            
+            elif (work.worked_hours.find('/')):
+                sep = work.worked_hours.split('/')
+                if len(sep)==2:
+                    
+                    if str(sep[0]).isdigit():
+                        directory[int(f'{work.employee_id.tabel_number}')]['total_work_hours'] += int(sep[0])
+                        directory[int(f'{work.employee_id.tabel_number}')]['worked_days'] += 1 
+                        if str(sep[1]).isdigit():
+                            # directory[int(f'{work.employee_id.tabel_number}')]['night_work'] +=int(sep[1])
+                            pass
+
+            elif (work.worked_hours in list_att):
+                print('contains')
                 directory[int(f'{work.employee_id.tabel_number}')]['weekends'] += 1
                 # directory[int(f'{employee.tabel_number}')]['weekends'] += 1
 

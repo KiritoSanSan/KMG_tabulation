@@ -156,7 +156,8 @@
 					var inputFieldName = $(this).attr('name');
 					var parts = inputFieldName.split('_');
 					var employee_tabel_number = parts[2];
-					
+					var totalNightHours = 0;
+
 					var totalWorkedHours = 0;
 					var totalWorkedDays = 0;
 					var days_length = 0
@@ -171,6 +172,16 @@
 							totalWorkedHours += parseFloat(worked_hours);
 							if (worked_hours !== '0') {
 								totalWorkedDays++;
+							}
+						}
+						if (worked_hours.indexOf('/')!==-1){
+							let night_hours = worked_hours.split('/');
+							if (night_hours.length===2){
+								totalNightHours+=parseInt(night_hours[1]);
+								totalWorkedHours+=parseInt(night_hours[0]);
+								if (worked_hours!=='0'){
+									totalWorkedDays++;
+								}
 							}
 						}
 			

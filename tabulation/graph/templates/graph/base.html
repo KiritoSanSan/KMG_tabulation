@@ -9,10 +9,10 @@
 <body>
     
     <a href="/admin/graph/graph/">
-        <button> График </button>
+        <button>График </button>
     </a>
     <a href = "/admin/tabel/tabel/">
-        <button>Плановый табель</button>
+        <button>Табель</button>
     </a>
     {% comment %} <a href="{%url 'graph:home'%}">
         <button class="home_button">Назад</button>
@@ -23,7 +23,7 @@
         <a href="{%url 'users:logout'%}">|Выйти</a>
     {% else %}
         <p class="user_log">Не вошли в Аккаунт</p>
-        <a href='{%url "users:login"%}'><p>|Войти</p></a>
+        <a href='{%url "admin:login"%}'><p>|Войти</p></a>
     {% endif %}
     {% block content %}
     {% endblock content %}

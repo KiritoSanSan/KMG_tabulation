@@ -64,8 +64,8 @@ def tabel_admin(request):
             pairs.append((f'{att}', 0))
         for att in no_attendance:
             pairs.append((f'{att}', 0))
-        pairs.append(('days_in_month', len(days)))
         pairs.append(('total_work_hours', 0))
+        pairs.append(('days_in_month', len(days)))
         pairs.append(('night_work',0))
         directory[int(f'{employee.tabel_number}')] = dict(pairs)
 
@@ -82,6 +82,7 @@ def tabel_admin(request):
                 if str(sep[1]).isdigit():
                     directory[int(f'{work.employee_id.tabel_number}')]['night_work'] +=int(sep[1])
                     directory[int(f'{work.employee_id.tabel_number}')]['total_work_hours'] += int(sep[0])
+                    directory[int(f'{work.employee_id.tabel_number}')]['worked_days'] += 1
             #
 
             for dir in directory[int(f'{work.employee_id.tabel_number}')].keys():
@@ -317,8 +318,9 @@ def tabel_admin_update(request):
             pairs.append((f'{att}', 0))
         for att in no_attendance:
             pairs.append((f'{att}', 0))
-        pairs.append(('days_in_month', len(days)))
         pairs.append(('total_work_hours', 0))
+        pairs.append(('days_in_month', len(days)))
+        
         pairs.append(('night_work',0))
         directory[int(f'{employee.tabel_number}')] = dict(pairs)
 
