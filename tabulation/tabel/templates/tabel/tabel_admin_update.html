@@ -103,7 +103,7 @@
                         <td><input style="width: 40px;" type="text" name="worked_hours_{{employee.tabel_number}}_{{ data.pk }}_{{forloop.counter}}" value="{{v}}" list="attendance_list"></td>
                       {%endif%}
                         <datalist id="attendance_list">
-                          {% for attend in attendance_full %}
+                          {% for attend in attendance_all %}
                             <option value="{{attend.name}}">														
                           {% endfor %}
                           </datalist>
@@ -213,7 +213,12 @@
       var totalWorkedHours = 0;
       var totalWorkedDays = 0;
       var variables = {};
+      var days_length = 0;
       
+      {% for day in days %}
+        days_length++;
+      {% endfor %}
+
       {% for attend in attendance %}
         variables['{{attend}}'] = 0;
       {% endfor %}
@@ -245,28 +250,27 @@
           }
           
         }
-
         
         for (let k in variables) {
           if (k === worked_hours){
             variables[k]++;
           }
         }
-
+        
       });
 
-      $(this).closest('tr').find('td').eq(36).text(totalWorkedDays); 
+      $(this).closest('tr').find('td').eq(5 + days_length).text(totalWorkedDays); 
       for (let i = 0; i < keys.length; i++) {
         if (variables[keys[i]] !== 0){
-          $(this).closest('tr').find('td').eq(37+i).text(variables[keys[i]]);
+          $(this).closest('tr').find('td').eq(5 + days_length + 1 + i).text(variables[keys[i]]);
         }
         else {
-          $(this).closest('tr').find('td').eq(37+i).text('');
+          $(this).closest('tr').find('td').eq(5 + days_length + 1 + i).text('');
 
         }
       }
-      $(this).closest('tr').find('td').eq(-12).text(totalWorkedHours); 
-      //$(this).closest('tr').find('td').eq(-10).text(totalNightHours); 
+      $(this).closest('tr').find('td').eq(-11).text(totalWorkedHours); 
+      $(this).closest('tr').find('td').eq(-10).text(totalNightHours); 
       
     });
 

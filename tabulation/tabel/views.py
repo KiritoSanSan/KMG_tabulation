@@ -64,8 +64,8 @@ def tabel_admin(request):
             pairs.append((f'{att}', 0))
         for att in no_attendance:
             pairs.append((f'{att}', 0))
-        pairs.append(('total_work_hours', 0))
         pairs.append(('days_in_month', len(days)))
+        pairs.append(('total_work_hours', 0))
         pairs.append(('night_work',0))
         directory[int(f'{employee.tabel_number}')] = dict(pairs)
 
@@ -88,7 +88,7 @@ def tabel_admin(request):
             for dir in directory[int(f'{work.employee_id.tabel_number}')].keys():
                 if dir == work.worked_hours:
                     directory[int(f'{work.employee_id.tabel_number}')][f'{dir}'] += 1
-    print(directory)
+    # print(directory)
     time_tracking_dict = {}
     for employee in employees:
         list = []
@@ -318,9 +318,8 @@ def tabel_admin_update(request):
             pairs.append((f'{att}', 0))
         for att in no_attendance:
             pairs.append((f'{att}', 0))
-        pairs.append(('total_work_hours', 0))
         pairs.append(('days_in_month', len(days)))
-        
+        pairs.append(('total_work_hours', 0))
         pairs.append(('night_work',0))
         directory[int(f'{employee.tabel_number}')] = dict(pairs)
 
@@ -342,13 +341,12 @@ def tabel_admin_update(request):
         for dir in directory[int(f'{work.employee_id.tabel_number}')].keys():
             if dir == work.worked_hours:
                 directory[int(f'{work.employee_id.tabel_number}')][f'{dir}'] += 1
-    print(directory)
+    # print(directory)
     context = {
         'graph_pk':tabel_pk,
         "year":year,
         "month":month,
         'days':days,
-        'full_attendance':full_attendance,
         "selected_month": name_month_ru,
         'employees':employees,
         'employees_all': search_employee,
