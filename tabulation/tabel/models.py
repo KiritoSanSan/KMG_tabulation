@@ -21,14 +21,18 @@ YEARS_CHOICES = (
     ('2024','2024'),
     ('2025','2025')
 )
-
+TABLE_CHOICE = (
+    ('не утвержден',"Не утвержден"),
+    ("утвержден","Утвержден")
+)
 class Tabel(models.Model):
     reservoir= models.ForeignKey('graph.OilPlace', verbose_name="Месторождение",related_name='tabel_reservoir', on_delete=models.CASCADE)
     subdivision = models.ForeignKey('graph.Subdivision', verbose_name="Подразделение", on_delete=models.CASCADE,related_name = 'tabel_subdivision')
     month = models.CharField(max_length = 100,verbose_name='Месяц',choices=MONTH_CHOICES_RU,default=None)
     year = models.CharField(verbose_name = 'Год',choices=YEARS_CHOICES,max_length=4,default=None)
     employees = models.ManyToManyField('graph.Employees',through="TabelEmployeesList",related_name='tabel_employee',verbose_name='Работники')
-
+    status = models.CharField(choices=TABLE_CHOICE,default='Не утвержден',max_length=20,verbose_name='Статус')
+    
     class Meta:
             verbose_name = 'Согласованный Табель'
             verbose_name_plural = "Согласованные Табеля"
@@ -40,11 +44,13 @@ class TimeTrackingTabel(models.Model):
     employee_id = models.ForeignKey(Employees, verbose_name="Табельный Номер", on_delete=models.CASCADE)
     date = models.DateField(auto_now=False, auto_now_add=False, verbose_name = "Дата")
     worked_hours = models.CharField(max_length = 5, verbose_name = "Проработано часов",default="0",null=True)
+    tabel_id = models.ForeignKey(Tabel,on_delete=models.CASCADE,verbose_name='Табель')
+
 
     class Meta:
         verbose_name = 'Контроль времени работников согласованного Табеля'
         verbose_name_plural = "Контроль времени работников согласованного Табеля"
-        unique_together = ('date','employee_id')
+        unique_together = ('date','tabel_id','employee_id')
 
     def __str__(self) -> str:
         return f"{self.id} {self.employee_id.name} {self.worked_hours}"
@@ -76,11 +82,12 @@ class TabelApprovedTimeTracking(models.Model):
     employee_id = models.ForeignKey(Employees, verbose_name="Табельный Номер", on_delete=models.CASCADE)
     date = models.DateField(auto_now=False, auto_now_add=False, verbose_name = "Дата")
     worked_hours = models.CharField(max_length = 5, verbose_name = "Проработано часов",default="0",null=True)
+    tabel_approved_id = models.ForeignKey(TabelApproved,on_delete=models.CASCADE,verbose_name='Утвержденный Табель')
 
     class Meta:
         verbose_name = 'Контроль времени работников утверджающего Табеля'
         verbose_name_plural = "Контроль времени работников утверджающего Табеля"
-        unique_together = ('date','employee_id')
+        unique_together = ('date','employee_id','tabel_approved_id')
 
     def __str__(self) -> str:
         return f"{self.id} {self.employee_id.name} {self.worked_hours}"

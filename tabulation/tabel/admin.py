@@ -31,6 +31,7 @@ class AdminTabel(admin.ModelAdmin):
                     'subdivision',
                     'month',
                     'year',
+                    'status'
                     )
     list_display = ('id',
                     'reservoir',
@@ -38,6 +39,7 @@ class AdminTabel(admin.ModelAdmin):
                     'month',
                     'year',
                     'view_tabel_link',
+                    'status',
                     )
     list_filter = ('reservoir',
                    'year',

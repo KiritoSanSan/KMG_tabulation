@@ -33,6 +33,10 @@ ATTENDACE_CHOICES = (
     ("дни явок","Дни Явок"),
     ('дни неявок',"Дни Неявок")
 )
+GRAPH_CHOICES = (
+    ("не согласованный","Не согласованный"),
+    ('согласованный',"Согласованный"),
+)
 class Job(models.Model):
     name = models.CharField(max_length = 100, verbose_name = "Название",unique=True)
     description = models.CharField(max_length=200, verbose_name = "Описание",null=True)
@@ -68,21 +72,6 @@ class Employees(models.Model):
     def __str__(self) -> str:
         return f"{self.tabel_number} {self.name} {self.surname}"
 
-class TimeTracking(models.Model):
-    employee_id = models.ForeignKey(Employees, verbose_name="Табельный Номер", on_delete=models.CASCADE)
-    date = models.DateField(auto_now=False, auto_now_add=False, verbose_name = "Дата")
-    worked_hours = models.CharField(max_length = 5, verbose_name = "Проработано часов",default="0",null=True)
-
-    
-
-    class Meta:
-        verbose_name = 'Контроль времени работников Графика'
-        verbose_name_plural = "Контроль времени работников Графика"
-        unique_together = ('date','employee_id')
-
-    def __str__(self) -> str:
-        return f"{self.id} {self.employee_id.fullname} {self.worked_hours}"
-        
 
 
 class Attendance(models.Model):
@@ -126,15 +115,34 @@ class Graph(models.Model):
     month = models.CharField(max_length = 100,verbose_name='Месяц',choices=MONTH_CHOICES_RU,default=None)
     year = models.CharField(verbose_name = 'Год',choices=YEARS_CHOICES,max_length=4,default=None)
     employees = models.ManyToManyField(Employees,through="GraphEmployeesList",related_name='graph_employee',verbose_name='Работники')
+    status = models.CharField(choices=GRAPH_CHOICES,default='Не согласованный',max_length=20,verbose_name='Статус')
 
     class Meta:
         verbose_name = 'График'
         verbose_name_plural = "Графики"
         unique_together = ('reservoir', 'subdivision','month','year')
-
+        
+    def get_status_display(self):
+        return dict(GRAPH_CHOICES).get(self.status, self.status)
 
     def __str__(self) -> str:
         return f"{self.id} {self.subdivision} {self.reservoir}"
+
+class TimeTracking(models.Model):
+    employee_id = models.ForeignKey(Employees, verbose_name="Табельный Номер", on_delete=models.CASCADE)
+    date = models.DateField(auto_now=False, auto_now_add=False, verbose_name = "Дата")
+    worked_hours = models.CharField(max_length = 5, verbose_name = "Проработано часов",default="0",null=True)
+    graph_id = models.ForeignKey(Graph,verbose_name='График',on_delete=models.CASCADE)
+    
+
+    class Meta:
+        verbose_name = 'Контроль времени работников Графика'
+        verbose_name_plural = "Контроль времени работников Графика"
+        unique_together = ('date','graph_id','employee_id')
+
+    def __str__(self) -> str:
+        return f"{self.id} {self.employee_id.fullname} {self.worked_hours}"
+        
 
 class GraphEmployeesList(models.Model):
     employee_id = models.ForeignKey(Employees,related_name='employees_graph_employee',on_delete=models.CASCADE)
@@ -144,7 +152,7 @@ class GraphEmployeesList(models.Model):
         verbose_name = 'Работники в графике'
         verbose_name_plural = "Работники в графиках"
         unique_together = ['employee_id','graph_id']
-
+        
     def __str__(self):
 
         return f""

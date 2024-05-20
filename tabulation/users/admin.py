@@ -15,7 +15,7 @@ class AccountAdmin(UserAdmin):
     readonly_fields = ('date_joined', 'last_login')
     fieldsets = (
         (None, {"fields": ("email", "password")}),
-        (_("Personal info"), {"fields": ("first_name", "last_name")}),
+        (_("Personal info"), {"fields": ("first_name", "last_name",'iin')}),
         (
             _("Permissions"),
             {
@@ -35,7 +35,7 @@ class AccountAdmin(UserAdmin):
                 None,
                 {
                     'classes': ('wide',),
-                    'fields': ('email','first_name', 'last_name','is_staff','is_superuser' ,'password1', 'password2'),
+                    'fields': ('email','first_name', 'last_name','iin','is_staff','is_superuser' ,'password1', 'password2'),
                 },
             ),
         )

@@ -48,11 +48,13 @@ class GraphAdmin(admin.ModelAdmin):
                     'month',
                     'year',
                     'view_graph_link',
+                    'status',
                     # 'parsing_graph',
                     )
     list_filter = ('reservoir',
                    'year',
                    'subdivision')
+    # readonly_fields = ('status',)
 
     #Add link to check each graph by pk
     def view_graph_link(self,obj):
@@ -68,6 +70,12 @@ class GraphAdmin(admin.ModelAdmin):
         url = (reverse('graph:graph_parsing'))
         return format_html('<a href={}>{}',url,'Парсинг Excel Графиков')
     parsing_graph.short_description = 'Парсинг Графиков'
+
+    # def get_readonly_fields(self, request, obj=None):
+    #         readonly_fields = list(super().get_readonly_fields(request, obj))
+    #         if obj:
+    #             readonly_fields.append('status')
+    #         return readonly_fields
 
 
 

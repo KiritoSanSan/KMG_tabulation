@@ -214,36 +214,39 @@
   </div>
   <script>
     function confirmSubmit() {
-      const spinnerBox = document.getElementById('spinner-box');
-      const dataBox = document.getElementById('data-box');
-      
-      // Show spinner and hide data
-      spinnerBox.style.display = 'block';
-      dataBox.style.display = 'none';
-      
-      // Log confirmation message
-      console.log("Вы уверены, что хотите утвердить Табель?");
-      
-      // Perform AJAX request
-      $.ajax({
-        type: 'POST',
-        url: '{% url "graph:graph_admin" %}?{{ graph_pk }}',
-        success: function(response) {
-          // Hide spinner and show data after successful response
-          spinnerBox.style.display = 'none';
-          dataBox.style.display = 'block';
-        },
-        error: function(error) {
-          // Handle error if AJAX request fails
-          console.error('Error:', error);
-          // Revert to initial state if there's an error
-          spinnerBox.style.display = 'block';
-          dataBox.style.display = 'none';
-        }
-      });
-  
       // Confirm submission
-      return confirm("Вы уверены, что хотите утвердить Табель?");
+      const userConfirmed = confirm("Вы уверены, что хотите согласовать График?");
+      
+      if (userConfirmed) {
+        const spinnerBox = document.getElementById('spinner-box');
+        const dataBox = document.getElementById('data-box');
+        
+        // Show spinner and hide data
+        spinnerBox.style.display = 'block';
+        dataBox.style.display = 'none';
+        
+        // Log confirmation message
+        console.log("Вы уверены, что хотите Утвердить Табель?");
+        
+        // Perform AJAX request
+        $.ajax({
+          type: 'POST',
+          url: '{% url "graph:graph_admin" %}?{{ graph_pk }}',
+          success: function(response) {
+            // Hide spinner and show data after successful response
+            spinnerBox.style.display = 'none';
+            dataBox.style.display = 'block';
+          },
+          error: function(error) {
+            // Handle error if AJAX request fails
+            console.error('Error:', error);
+            // Revert to initial state if there's an error
+            spinnerBox.style.display = 'block';
+            dataBox.style.display = 'none';
+          }
+        });
+      }
+      return userConfirmed;
     }
   </script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>

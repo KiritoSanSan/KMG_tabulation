@@ -46,7 +46,7 @@ def tabel_admin(request):
     no_attendance = Attendance.objects.filter(type='дни неявок')
     month = tabel.month
     year = tabel.year
-    tracking = TimeTrackingTabel.objects.filter(date__year=int(year), date__month=int(month)).select_related('employee_id')
+    tracking = TimeTrackingTabel.objects.filter(date__year=int(year), date__month=int(month),tabel_id=tabel).select_related('employee_id')
     
     
 
@@ -69,25 +69,25 @@ def tabel_admin(request):
         pairs.append(('night_work',0))
         directory[int(f'{employee.tabel_number}')] = dict(pairs)
 
-    # for employee in employees:
-    for work in tracking:
-        # if work.employee_id == employee:
-            if str(work.worked_hours).isdigit():
-                directory[int(f'{work.employee_id.tabel_number}')]['worked_days'] += 1
-                directory[int(f'{work.employee_id.tabel_number}')]['total_work_hours'] += int(work.worked_hours)
-            
-            #night worked hours
-            sep = work.worked_hours.split('/')
-            if len(sep)==2:
-                if str(sep[1]).isdigit():
-                    directory[int(f'{work.employee_id.tabel_number}')]['night_work'] +=int(sep[1])
-                    directory[int(f'{work.employee_id.tabel_number}')]['total_work_hours'] += int(sep[0])
+    for employee in employees:
+        for work in tracking:
+            if work.employee_id == employee:
+                if str(work.worked_hours).isdigit():
                     directory[int(f'{work.employee_id.tabel_number}')]['worked_days'] += 1
-            #
+                    directory[int(f'{work.employee_id.tabel_number}')]['total_work_hours'] += int(work.worked_hours)
+                
+                #night worked hours
+                sep = work.worked_hours.split('/')
+                if len(sep)==2:
+                    if str(sep[1]).isdigit():
+                        directory[int(f'{work.employee_id.tabel_number}')]['night_work'] +=int(sep[1])
+                        directory[int(f'{work.employee_id.tabel_number}')]['total_work_hours'] += int(sep[0])
+                        directory[int(f'{work.employee_id.tabel_number}')]['worked_days'] += 1
+                #
 
-            for dir in directory[int(f'{work.employee_id.tabel_number}')].keys():
-                if dir == work.worked_hours:
-                    directory[int(f'{work.employee_id.tabel_number}')][f'{dir}'] += 1
+                for dir in directory[int(f'{work.employee_id.tabel_number}')].keys():
+                    if dir == work.worked_hours:
+                        directory[int(f'{work.employee_id.tabel_number}')][f'{dir}'] += 1
     # print(directory)
     time_tracking_dict = {}
     for employee in employees:
@@ -96,16 +96,19 @@ def tabel_admin(request):
             list.append(0)
         time_tracking_dict[int(f'{employee.tabel_number}')] = list
 
-    for work in tracking:
-        employee_id = work.employee_id.tabel_number
-        day_index = days.index(work.date.day)
-        time_tracking_dict[int(employee_id)][day_index] = work.worked_hours
-    
+    for employee in employees:
+        for work in tracking:
+            if work.employee_id == employee:
+                employee_id = work.employee_id.tabel_number
+                day_index = days.index(work.date.day)
+                time_tracking_dict[int(employee_id)][day_index] = work.worked_hours
+        
     if request.method == 'POST':
         if 'approve_graph' in request.POST:
             tabel_pk = request.POST.get('tabel_pk')
             tabel_inst = Tabel.objects.get(pk=tabel_pk)
             employees_graph = tabel_inst.employees.all()
+            tabel_instance = None
             try:
                 tabel_instance = TabelApproved.objects.get(
                     reservoir=tabel_inst.reservoir,
@@ -128,17 +131,20 @@ def tabel_admin(request):
                     for day in days:
                         list.append(0)
                     time_tracking_dict_tabel[int(f'{employee.tabel_number}')] = list
-                for work in tracking:
-                    employee_id = work.employee_id.tabel_number
-                    day_index = days.index(work.date.day)
-                    time_tracking_dict_tabel[int(employee_id)][day_index] = work.worked_hours
+                for employee in employees_graph:
+                    for work in tracking:
+                        if work.employee_id == employee:
+                            employee_id = work.employee_id.tabel_number
+                            day_index = days.index(work.date.day)
+                            time_tracking_dict_tabel[int(employee_id)][day_index] = work.worked_hours
                 time_tracking_tabel_instances = []
                 for employee_id, values in time_tracking_dict_tabel.items():
                     for day_index, worked_hours in enumerate(values):
-                        time_tracking_tabel_instances.append(TimeTrackingTabel(
+                        time_tracking_tabel_instances.append(TabelApprovedTimeTracking(
                             employee_id=Employees.objects.get(tabel_number=employee_id),
                             date=datetime(int(tabel_instance.year), int(tabel_instance.month), days[day_index]),
-                            worked_hours=worked_hours
+                            worked_hours=worked_hours,
+                            tabel_approved_id = tabel_instance,
                         ))
                 # print(time_tracking_tabel_instances)
                 TabelApprovedTimeTracking.objects.bulk_create(time_tracking_tabel_instances)
@@ -191,9 +197,9 @@ def tabel_admin_update(request):
     full_attendance = Attendance.objects.all()
     attendance = Attendance.objects.filter(type='дни явок')
     no_attendance = Attendance.objects.filter(type='дни неявок')
-    month = tabel.month
-    year = tabel.year
-    tracking = TimeTrackingTabel.objects.filter(date__year=int(year), date__month=int(month)).select_related('employee_id')
+    month = int(tabel.month)
+    year = int(tabel.year)
+    tracking = TimeTrackingTabel.objects.filter(date__year=int(year), date__month=int(month),tabel_id=tabel).select_related('employee_id')
     
     try:
         search_employee = Employees.objects.filter(
@@ -213,24 +219,6 @@ def tabel_admin_update(request):
 
     name_month_en = calendar.month_name[int(month)]
     name_month_ru = month_names_ru[name_month_en]
-
-    # if month and month is not None:
-    #     filter_month = int(month)
-    #     tracking = TimeTrackingTabel.objects.filter(employee_id__in = employees.values_list('tabel_number',flat=True))
-    #     tracking = tracking.filter(date__month=filter_month)
-    #     tabel_numbers = tracking.values_list('employee_id',flat=True)
-    #     employees = employees.filter(tabel_number__in=tabel_numbers)
-    # if year and year is not None:
-    #     filter_year = int(year)
-    #     tracking = TimeTrackingTabel.objects.filter(employee_id__in = employees.values_list('tabel_number',flat=True))
-    #     tracking = tracking.filter(date__year=filter_year)
-    #     tabel_numbers = tracking.values_list('employee_id',flat=True)
-    #     employees = employees.filter(tabel_number__in=tabel_numbers)
-    # dates = tracking.values_list('date',flat=True).distinct()
-    # for date in dates:
-    #     month = date.month
-    #     year = date.year
-    
     num_days = calendar.monthrange(int(year),int(month))[1]
     days = range(1,num_days+1)
 
@@ -242,11 +230,13 @@ def tabel_admin_update(request):
         time_tracking_dict[int(f'{employee.tabel_number}')] = list
     # print(time_tracking_dict)
 
-    for work in tracking:
-        employee_id = work.employee_id.tabel_number
-        day_index = days.index(work.date.day)
-        time_tracking_dict[int(employee_id)][day_index] = work.worked_hours
-
+    for employee in employees:
+        for work in tracking:
+            if work.employee_id == employee:
+                employee_id = work.employee_id.tabel_number
+                day_index = days.index(work.date.day)
+                time_tracking_dict[int(employee_id)][day_index] = work.worked_hours
+        
     if request.method == "POST":
         # AJAX requests 
         if request.headers["content-type"].strip().startswith("application/json"):
@@ -267,7 +257,8 @@ def tabel_admin_update(request):
                     TimeTrackingTabel.objects.create(
                         employee_id = empl,
                         date = datetime(year, month, day),
-                        worked_hours = ''
+                        worked_hours = '',
+                        tabel_id = tabel
                     )
                 tabel.employees.add(employee_tabel_number)
 
@@ -323,25 +314,26 @@ def tabel_admin_update(request):
         pairs.append(('night_work',0))
         directory[int(f'{employee.tabel_number}')] = dict(pairs)
 
-    # for employee in employees:
-    for work in tracking:
-        # if work.employee_id == employee:
-        if str(work.worked_hours).isdigit():
-            directory[int(f'{work.employee_id.tabel_number}')]['worked_days'] += 1
-            directory[int(f'{work.employee_id.tabel_number}')]['total_work_hours'] += int(work.worked_hours)
-            
-            #night worked hours
-            sep = work.worked_hours.split('/')
-            if len(sep)==2:
-                if str(sep[1]).isdigit():
-                    directory[int(f'{work.employee_id.tabel_number}')]['night_work'] +=int(sep[1])
-                    directory[int(f'{work.employee_id.tabel_number}')]['total_work_hours'] += int(sep[0])
-            #
-        
-        for dir in directory[int(f'{work.employee_id.tabel_number}')].keys():
-            if dir == work.worked_hours:
-                directory[int(f'{work.employee_id.tabel_number}')][f'{dir}'] += 1
-    # print(directory)
+    for employee in employees:
+        for work in tracking:
+            if work.employee_id == employee:
+                if str(work.worked_hours).isdigit():
+                    directory[int(f'{work.employee_id.tabel_number}')]['worked_days'] += 1
+                    directory[int(f'{work.employee_id.tabel_number}')]['total_work_hours'] += int(work.worked_hours)
+                
+                #night worked hours
+                sep = work.worked_hours.split('/')
+                if len(sep)==2:
+                    if str(sep[1]).isdigit():
+                        directory[int(f'{work.employee_id.tabel_number}')]['night_work'] +=int(sep[1])
+                        directory[int(f'{work.employee_id.tabel_number}')]['total_work_hours'] += int(sep[0])
+                        directory[int(f'{work.employee_id.tabel_number}')]['worked_days'] += 1
+                #
+
+                for dir in directory[int(f'{work.employee_id.tabel_number}')].keys():
+                    if dir == work.worked_hours:
+                        directory[int(f'{work.employee_id.tabel_number}')][f'{dir}'] += 1
+        # print(directory)
     context = {
         'graph_pk':tabel_pk,
         "year":year,
@@ -420,22 +412,26 @@ def tabel_approved_admin(request):
         pairs.append(('night_work',0))
         directory[int(f'{employee.tabel_number}')] = dict(pairs)
 
-    # for employee in employees:
-    for work in tracking:
-            # if work.employee_id == employee:
-        if str(work.worked_hours).isdigit():
-            directory[int(f'{work.employee_id.tabel_number}')]['worked_days'] += 1
-            directory[int(f'{work.employee_id.tabel_number}')]['total_work_hours'] += int(work.worked_hours)
-        #night worked hours
-        sep = work.worked_hours.split('/')
-        if len(sep)==2:
-            if str(sep[1]).isdigit():
-                directory[int(f'{work.employee_id.tabel_number}')]['night_work'] +=int(sep[1])
-                directory[int(f'{work.employee_id.tabel_number}')]['total_work_hours'] += int(sep[0])
-            #
-        for dir in directory[int(f'{work.employee_id.tabel_number}')].keys():
-            if dir == work.worked_hours:
-                directory[int(f'{work.employee_id.tabel_number}')][f'{dir}'] += 1
+    for employee in employees:
+        for work in tracking:
+            if work.employee_id == employee:
+                if str(work.worked_hours).isdigit():
+                    directory[int(f'{work.employee_id.tabel_number}')]['worked_days'] += 1
+                    directory[int(f'{work.employee_id.tabel_number}')]['total_work_hours'] += int(work.worked_hours)
+                
+                #night worked hours
+                sep = work.worked_hours.split('/')
+                if len(sep)==2:
+                    if str(sep[1]).isdigit():
+                        directory[int(f'{work.employee_id.tabel_number}')]['night_work'] +=int(sep[1])
+                        directory[int(f'{work.employee_id.tabel_number}')]['total_work_hours'] += int(sep[0])
+                        directory[int(f'{work.employee_id.tabel_number}')]['worked_days'] += 1
+                #
+
+                for dir in directory[int(f'{work.employee_id.tabel_number}')].keys():
+                    if dir == work.worked_hours:
+                        directory[int(f'{work.employee_id.tabel_number}')][f'{dir}'] += 1
+    # print(directory)
     time_tracking_dict = {}
     for employee in employees:
         list = []
@@ -443,11 +439,13 @@ def tabel_approved_admin(request):
             list.append(0)
         time_tracking_dict[int(f'{employee.tabel_number}')] = list
 
-    for work in tracking:
-        employee_id = work.employee_id.tabel_number
-        day_index = days.index(work.date.day)
-        time_tracking_dict[int(employee_id)][day_index] = work.worked_hours
-
+    for employee in employees:
+        for work in tracking:
+            if work.employee_id == employee:
+                employee_id = work.employee_id.tabel_number
+                day_index = days.index(work.date.day)
+                time_tracking_dict[int(employee_id)][day_index] = work.worked_hours
+        
 
     context = {
         'tabel_pk':tabel_pk,

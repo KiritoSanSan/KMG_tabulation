@@ -4,9 +4,9 @@ from django.utils.translation import gettext_lazy as _
 
 class CustomUserManager(BaseUserManager):
     
-    def create_user(self,username,email,password,first_name,last_name,*args,**kwargs):
+    def create_user(self,username,email,password,first_name,last_name,iin,*args,**kwargs):
         if not email:
-            raise ValueError(_("The email must be set"))
+            raise ValueError(_("Email должен присутствовать"))
         if email:
             email = self.normalize_email(email)
             if username is None:
@@ -24,9 +24,9 @@ class CustomUserManager(BaseUserManager):
         kwargs.setdefault('is_active',True)
 
         if kwargs.get('is_staff') is not True:
-            raise ValueError('superuser must have is_staff=True')
+            raise ValueError('У Администратора должно стоять is_staff=True')
         if kwargs.get('is_superuser') is not True:
-            raise ValueError('superuser must have is_superuser=True')
+            raise ValueError('У Администратора должно стоять is_superuser=True')
         return self.create_user(username=username,password=password,first_name=first_name,last_name=last_name,*args,**kwargs)
     
     

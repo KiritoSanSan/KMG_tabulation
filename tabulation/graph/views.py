@@ -189,7 +189,7 @@ def graph_admin(request):
     # tracking = TimeTracking.objects.all().select_related('employee_id')
     month = graph.month
     year = graph.year
-    tracking = TimeTracking.objects.filter(date__year=int(year), date__month=int(month)).select_related('employee_id')
+    tracking = TimeTracking.objects.filter(date__year=int(year), date__month=int(month), graph_id = graph).select_related('employee_id')
     name_month_en = calendar.month_name[int(month)]
     name_month_ru = month_names_ru[name_month_en]
     num_days = calendar.monthrange(int(year),int(month))[1]
@@ -205,27 +205,27 @@ def graph_admin(request):
         pairs = [('worked_days', 0), ('weekends', 0), ('days_in_month', len(days)), ('total_work_hours', 0)]
         directory[int(f'{employee.tabel_number}')] = dict(pairs)
 
-    # for employee in employees:
-    for work in tracking:
-        # if work.employee_id == employee:
-            if str(work.worked_hours).isdigit():
-                directory[int(f'{work.employee_id.tabel_number}')]['worked_days'] += 1 
-                directory[int(f'{work.employee_id.tabel_number}')]['total_work_hours'] += int(work.worked_hours)
-                # directory[int(f'{employee.tabel_number}')]['worked_days'] += 1 
-                # directory[int(f'{employee.tabel_number}')]['total_work_hours'] += int(work.worked_hours)
-            elif ('/' in work.worked_hours):
-                sep = work.worked_hours.split('/')
-                if len(sep)==2:
-                    if str(sep[0]).isdigit():
-                        directory[int(f'{work.employee_id.tabel_number}')]['total_work_hours'] += int(sep[0])
-                        directory[int(f'{work.employee_id.tabel_number}')]['worked_days'] += 1 
-                        if str(sep[1]).isdigit():
-                            # directory[int(f'{work.employee_id.tabel_number}')]['night_work'] +=int(sep[1])
-                            pass
+    for employee in employees:
+        for work in tracking:
+            if work.employee_id == employee:
+                if str(work.worked_hours).isdigit():
+                    directory[int(f'{work.employee_id.tabel_number}')]['worked_days'] += 1 
+                    directory[int(f'{work.employee_id.tabel_number}')]['total_work_hours'] += int(work.worked_hours)
+                    # directory[int(f'{employee.tabel_number}')]['worked_days'] += 1 
+                    # directory[int(f'{employee.tabel_number}')]['total_work_hours'] += int(work.worked_hours)
+                elif ('/' in work.worked_hours):
+                    sep = work.worked_hours.split('/')
+                    if len(sep)==2:
+                        if str(sep[0]).isdigit():
+                            directory[int(f'{work.employee_id.tabel_number}')]['total_work_hours'] += int(sep[0])
+                            directory[int(f'{work.employee_id.tabel_number}')]['worked_days'] += 1 
+                            if str(sep[1]).isdigit():
+                                # directory[int(f'{work.employee_id.tabel_number}')]['night_work'] +=int(sep[1])
+                                pass
 
-            # elif not str(work.worked_hours).isdigit():
-            else:
-                directory[int(f'{work.employee_id.tabel_number}')]['weekends'] += 1
+                # elif not str(work.worked_hours).isdigit():
+                else:
+                    directory[int(f'{work.employee_id.tabel_number}')]['weekends'] += 1
 
 
     time_tracking_dict = {}
@@ -235,18 +235,20 @@ def graph_admin(request):
             list.append(0)
         time_tracking_dict[int(f'{employee.tabel_number}')] = list
 
-    for work in tracking:
-        employee_id = work.employee_id.tabel_number
-        day_index = days.index(work.date.day)
-        time_tracking_dict[int(employee_id)][day_index] = work.worked_hours
-    
+    for employee in employees:
+        for work in tracking:
+            if work.employee_id == employee:
+                employee_id = work.employee_id.tabel_number
+                day_index = days.index(work.date.day)
+                time_tracking_dict[int(employee_id)][day_index] = work.worked_hours
     #creating table
     if request.method == 'POST':
         if 'approve_graph' in request.POST:
             graph_pk = request.POST.get('graph_pk')
             graph_inst = Graph.objects.get(pk=graph_pk)
             employees_graph = graph_inst.employees.all()
-            tracking = TimeTracking.objects.filter(date__year=int(graph_inst.year), date__month=int(graph_inst.month)).select_related('employee_id')
+            tracking = TimeTracking.objects.filter(date__year=int(graph_inst.year), date__month=int(graph_inst.month),graph_id=graph_inst).select_related('employee_id')
+            tabel_instance = None
             try:
                 tabel_instance = Tabel.objects.get(
                     reservoir=graph_inst.reservoir,
@@ -273,6 +275,14 @@ def graph_admin(request):
                     employee_id = work.employee_id.tabel_number
                     day_index = days.index(work.date.day)
                     time_tracking_dict_tabel[int(employee_id)][day_index] = work.worked_hours
+
+                for employee in employees_graph:
+                    for work in tracking:
+                        if work.employee_id == employee:
+                            employee_id = work.employee_id.tabel_number
+                            day_index = days.index(work.date.day)
+                            time_tracking_dict_tabel[int(employee_id)][day_index] = work.worked_hours
+                    
                 # Create TimeTrackingTabel instances in bulk
                 time_tracking_tabel_instances = []
                 for employee_id, values in time_tracking_dict_tabel.items():
@@ -280,7 +290,8 @@ def graph_admin(request):
                         time_tracking_tabel_instances.append(TimeTrackingTabel(
                             employee_id=Employees.objects.get(tabel_number=employee_id),
                             date=datetime.datetime(int(graph_inst.year), int(graph_inst.month), days[day_index]),
-                            worked_hours=worked_hours
+                            worked_hours=worked_hours,
+                            tabel_id = tabel_instance
                         ))
                 # print(time_tracking_tabel_instances)
                 TimeTrackingTabel.objects.bulk_create(time_tracking_tabel_instances)
@@ -301,6 +312,7 @@ def graph_admin(request):
                 
                 messages.success(request,'Табель согласован')
                 return redirect('admin:tabel_tabel_changelist')
+    graph_to_json(graph_pk)
     context = {
         'graph_pk':graph_pk,
         "year":year,
@@ -336,7 +348,7 @@ def graph_admin_update(request):
     # tracking = TimeTracking.objects.all().select_related('employee_id')
     month = int(graph.month)
     year = int(graph.year)
-    tracking = TimeTracking.objects.filter(date__year=int(year), date__month=int(month)).select_related('employee_id')
+    tracking = TimeTracking.objects.filter(date__year=int(year), date__month=int(month), graph_id = graph).select_related('employee_id')
 
     # tracking = tracking.filter(date__year=int(year)).filter(date__month=int(month))
     employee_tabel_numbers = [employee.tabel_number for employee in employees]
@@ -363,10 +375,12 @@ def graph_admin_update(request):
         time_tracking_dict[int(f'{employee.tabel_number}')] = list
     # print(time_tracking_dict)
 
-    for work in tracking:
-        employee_id = work.employee_id.tabel_number
-        day_index = days.index(work.date.day)
-        time_tracking_dict[int(employee_id)][day_index] = work.worked_hours
+    for employee in employees:
+        for work in tracking:
+            if work.employee_id == employee:
+                employee_id = work.employee_id.tabel_number
+                day_index = days.index(work.date.day)
+                time_tracking_dict[int(employee_id)][day_index] = work.worked_hours
 
     if request.method == 'POST':
         if request.headers["content-type"].strip().startswith("application/json"):
@@ -384,6 +398,7 @@ def graph_admin_update(request):
             if "employee_id" in request.body.decode('utf-8'):
                 employee_addition_data = json.loads(request.body)
                 employee_tabel_number = employee_addition_data.get('employee_id')
+                # employee_graph = employee_addition_data.get('graph_pk')
                 employee_add = Employees.objects.get(pk=employee_tabel_number)
                 for day in days:
                     # TimeTracking.objects.create(
@@ -394,7 +409,8 @@ def graph_admin_update(request):
                         [
                         TimeTracking(employee_id = employee_add,
                         date = datetime.datetime(year, month, day),
-                        worked_hours = ''
+                        worked_hours = '',
+                        graph_id = graph
                         )
                         ]
                     )
@@ -408,8 +424,8 @@ def graph_admin_update(request):
                     for day in days:
                         time_tracking_employee = int(key.split('_')[2])
                         if day == time_tracking_day:
-                                day_index = days.index(time_tracking_day)
-                                time_tracking_dict[time_tracking_employee][day_index] = value
+                            day_index = days.index(time_tracking_day)
+                            time_tracking_dict[time_tracking_employee][day_index] = value
                         else:
                             if time_tracking_employee not in time_tracking_dict:
                                 time_tracking_dict[time_tracking_employee] = [0] * len(days)
@@ -431,7 +447,7 @@ def graph_admin_update(request):
                     w = time_tracking_dict[employee_id][day_index]
                     if w is not None:
                         if w == '':
-                            work.worked_hours = 0
+                            work.worked_hours = 0 #
                         else:
                             work.worked_hours = w
         # Batch save all the updated works
@@ -452,28 +468,28 @@ def graph_admin_update(request):
         pairs = [('worked_days', 0), ('weekends', 0), ('days_in_month', len(days)), ('total_work_hours', 0)]
         directory[int(f'{employee.tabel_number}')] = dict(pairs)
 
-    # for employee in employees:
-    for work in tracking:
-        # if work.employee_id == employee:
-            if str(work.worked_hours).isdigit():
-                directory[int(f'{work.employee_id.tabel_number}')]['worked_days'] += 1 
-                directory[int(f'{work.employee_id.tabel_number}')]['total_work_hours'] += int(work.worked_hours)
-                # directory[int(f'{employee.tabel_number}')]['worked_days'] += 1 
-                # directory[int(f'{employee.tabel_number}')]['total_work_hours'] += int(work.worked_hours)
-            elif ('/' in work.worked_hours):
-                sep = work.worked_hours.split('/')
-                if len(sep)==2:
-                    if str(sep[0]).isdigit():
-                        directory[int(f'{work.employee_id.tabel_number}')]['total_work_hours'] += int(sep[0])
-                        directory[int(f'{work.employee_id.tabel_number}')]['worked_days'] += 1 
-                        if str(sep[1]).isdigit():
-                            # directory[int(f'{work.employee_id.tabel_number}')]['night_work'] +=int(sep[1])
-                            pass
+    for employee in employees:
+        for work in tracking:
+            if work.employee_id == employee:
+                if str(work.worked_hours).isdigit():
+                    directory[int(f'{work.employee_id.tabel_number}')]['worked_days'] += 1 
+                    directory[int(f'{work.employee_id.tabel_number}')]['total_work_hours'] += int(work.worked_hours)
+                    # directory[int(f'{employee.tabel_number}')]['worked_days'] += 1 
+                    # directory[int(f'{employee.tabel_number}')]['total_work_hours'] += int(work.worked_hours)
+                elif ('/' in work.worked_hours):
+                    sep = work.worked_hours.split('/')
+                    if len(sep)==2:
+                        if str(sep[0]).isdigit():
+                            directory[int(f'{work.employee_id.tabel_number}')]['total_work_hours'] += int(sep[0])
+                            directory[int(f'{work.employee_id.tabel_number}')]['worked_days'] += 1 
+                            if str(sep[1]).isdigit():
+                                # directory[int(f'{work.employee_id.tabel_number}')]['night_work'] +=int(sep[1])
+                                pass
 
-            # elif not str(work.worked_hours).isdigit():
-            else:
-                directory[int(f'{work.employee_id.tabel_number}')]['weekends'] += 1
-                # directory[int(f'{employee.tabel_number}')]['weekends'] += 1
+                # elif not str(work.worked_hours).isdigit():
+                else:
+                    directory[int(f'{work.employee_id.tabel_number}')]['weekends'] += 1
+                    # directory[int(f'{employee.tabel_number}')]['weekends'] += 1
     context = {
         'employees_all': search_employee,
         'graph_pk':graph_pk,
@@ -696,7 +712,8 @@ def upload_file(request):
                                 try:
                                     timetracking_inst = TimeTracking.objects.get(
                                         employee_id = employee_inst,
-                                        date=datetime.datetime(2023,graph_month,count_day)
+                                        date=datetime.datetime(2023,graph_month,count_day),
+                                        graph_id = graph_inst
                                     )
                                 except:
                                     # print('month ',month,' day ',count_day)
@@ -704,7 +721,8 @@ def upload_file(request):
                                         TimeTracking.objects.create(
                                             employee_id = employee_inst,
                                             date=datetime.datetime(2023,graph_month,count_day),
-                                            worked_hours = value
+                                            worked_hours = value,
+                                            graph_id = graph_inst
                                         )
                                 count_day+=1
                             
@@ -721,7 +739,88 @@ def upload_file(request):
     context.update(sidebar(request))
     return render(request,'graph/parsing_graph.html',context)
 
+def graph_to_json(graph_pk):
+    """
+    "graph":{
+        graph_pk:{
+            "year":year,
+            "month":month,
+            "reservoir":reservoir,
+            "subdivision":subivision,
+            "status":status,
+            "employees":{
+                employee_tabel_number:{
+                    "name":name,
+                    "surname":surname,
+                    "middlename":middlename,
+                    "tariff_category":tariff_category,
+                    "job":job,
+                    "oil_place":oil_place,
+                    timetracking : {
+                        date:worked_hours,
+                        },
+                    "total_days_worked":total_days_worked,
+                    "total_rest_days":total_rest_days,
+                    "total_days_in_month":total_days_in_month",
+                    "total_hours":total_hours
+                }
+            }
+        }
+        
+    }
+    """
+    graph = Graph.objects.get(pk=graph_pk)
+    employees = graph.employees.all()
+    reservoir = graph.reservoir.name
+    subdivision = graph.subdivision.name
+    month = graph.month
+    year = int(graph.year)
+    num_days = calendar.monthrange(int(year),int(month))[1]
+    days = range(1,num_days+1)
+    tracking = TimeTracking.objects.filter(date__year=year, date__month=int(month), graph_id = graph).select_related('employee_id')
+    graph_json = {
+    "graph": {
+        str(graph_pk): {
+            "year": year,
+            "month": month,
+            "reservoir": f"{reservoir}",
+            "subdivision": f"{subdivision}",
+            "status": graph.status,
+            "employees": {}
+            }
+        }
+    }
+    time_tracking_dict = defaultdict(lambda: {f"{day}.{month}.{year}": 0 for day in days})
 
+    for work in tracking:
+        employee_id = work.employee_id.tabel_number
+        day_str = f"{work.date.day}.{month}.{year}"
+        time_tracking_dict[employee_id][day_str] = work.worked_hours
+    
+    directory = {}
+    for employee in employees:
+        pairs = [('worked_days', 0), ('weekends', 0), ('days_in_month', len(days)), ('total_work_hours', 0)]
+        directory[int(f'{employee.tabel_number}')] = dict(pairs)
+    
+    print(time_tracking_dict)
+    for employee in employees:
+        job = Job.objects.get(pk=employee.job.pk)
+        
+        employee_dict = {
+            "name": employee.name,
+            "surname": employee.surname,
+            "middlename": employee.middlename,
+            "tariff_category": employee.tariff_category,
+            "job": employee.job.name,  
+            "oil_place": employee.oil_place.name,  
+            "time_tracking": time_tracking_dict[employee.tabel_number]
+        }
+        graph_json["graph"][str(graph_pk)]["employees"][employee.tabel_number] = employee_dict
+    path = f'../tabulation/graph_json.json'
+    with open(path,'w',encoding='utf-8') as json_file:
+        json.dump(graph_json,json_file,ensure_ascii=False,indent=4)
+    print(json.dumps(graph_json,ensure_ascii=False,indent=4))
+    # print(graph_json)
 
 
 

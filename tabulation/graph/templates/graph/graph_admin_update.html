@@ -122,9 +122,9 @@
 			
 			</tbody>
 			</table>
-			
-			<input type="submit" value="Сохранить график" class="default">
-			
+			<form method='post' onsubmit="return confirmSave();">
+				<input type="submit" value="Сохранить график" class="default">
+			</form>
 			
 		</form>
 		<input id="add-row-button" type="button" value="Добавить работника" class="default">
@@ -287,6 +287,36 @@ $.ajax({
     console.log(error)
   }
 })
+</script>
+<script>
+	function confirmSave(){
+		const userConfirmed = confirm("Вы уверены, что хотите сохранить График?");
+		if (userConfirmed) {
+			const spinnerBox = document.getElementById('spinner-box');
+			const dataBox = document.getElementById('data-box');
+			spinnerBox.style.display = 'block';
+      		dataBox.style.display = 'none';
+			console.log("Вы уверены, что хотите согласовать График?");
+
+			$.ajax({
+			type: 'POST',
+			url: '{% url "graph:graph_admin" %}?{{ graph_pk }}',
+			success: function(response) {
+				// Hide spinner and show data after successful response
+				spinnerBox.style.display = 'none';
+				dataBox.style.display = 'block';
+			},
+			error: function(error) {
+				// Handle error if AJAX request fails
+				console.error('Error:', error);
+				// Revert to initial state if there's an error
+				spinnerBox.style.display = 'block';
+				dataBox.style.display = 'none';
+			}
+			});
+		}
+			return userConfirmed;
+	}
 </script>
 
 {% endblock %}
