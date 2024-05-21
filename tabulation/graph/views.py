@@ -801,6 +801,28 @@ def graph_to_json(graph_pk):
     for employee in employees:
         pairs = [('worked_days', 0), ('weekends', 0), ('days_in_month', len(days)), ('total_work_hours', 0)]
         directory[int(f'{employee.tabel_number}')] = dict(pairs)
+
+    for employee in employees:
+        for work in tracking:
+            if work.employee_id == employee:
+                if str(work.worked_hours).isdigit():
+                    directory[int(f'{work.employee_id.tabel_number}')]['worked_days'] += 1 
+                    directory[int(f'{work.employee_id.tabel_number}')]['total_work_hours'] += int(work.worked_hours)
+                    # directory[int(f'{employee.tabel_number}')]['worked_days'] += 1 
+                    # directory[int(f'{employee.tabel_number}')]['total_work_hours'] += int(work.worked_hours)
+                elif ('/' in work.worked_hours):
+                    sep = work.worked_hours.split('/')
+                    if len(sep)==2:
+                        if str(sep[0]).isdigit():
+                            directory[int(f'{work.employee_id.tabel_number}')]['total_work_hours'] += int(sep[0])
+                            directory[int(f'{work.employee_id.tabel_number}')]['worked_days'] += 1 
+                            if str(sep[1]).isdigit():
+                                # directory[int(f'{work.employee_id.tabel_number}')]['night_work'] +=int(sep[1])
+                                pass
+
+                # elif not str(work.worked_hours).isdigit():
+                else:
+                    directory[int(f'{work.employee_id.tabel_number}')]['weekends'] += 1
     
     print(time_tracking_dict)
     for employee in employees:
@@ -813,14 +835,18 @@ def graph_to_json(graph_pk):
             "tariff_category": employee.tariff_category,
             "job": employee.job.name,  
             "oil_place": employee.oil_place.name,  
-            "time_tracking": time_tracking_dict[employee.tabel_number]
+            "time_tracking": time_tracking_dict[employee.tabel_number],
+            "worked_days":directory[employee.tabel_number]['worked_days'],
+            "weekends":directory[employee.tabel_number]['weekends'],
+            "total_days_in_month":len(days),
+            "total_work_hours":directory[employee.tabel_number]['total_work_hours'],
+            
         }
         graph_json["graph"][str(graph_pk)]["employees"][employee.tabel_number] = employee_dict
     path = f'../tabulation/graph_json.json'
     with open(path,'w',encoding='utf-8') as json_file:
         json.dump(graph_json,json_file,ensure_ascii=False,indent=4)
     print(json.dumps(graph_json,ensure_ascii=False,indent=4))
-    # print(graph_json)
 
 
 

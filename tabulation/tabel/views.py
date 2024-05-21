@@ -464,3 +464,4 @@ def tabel_approved_admin(request):
     }
     context.update(sidebar(request))
     return render(request,'tabel/tabel_approved_admin.html',context)
+
