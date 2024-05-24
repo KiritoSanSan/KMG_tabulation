@@ -70,12 +70,13 @@ function getActiveTokensBack(result) {
     }
 }
 
+
+
 function getKeyInfoCall() {
     blockScreen();
     var selectedStorage = $('#storageSelect').val();
     getKeyInfo(selectedStorage, "getKeyInfoBack");
 }
-
 function getKeyInfoBack(result) {
     unblockScreen();
     if (result['code'] === "500") {
@@ -94,7 +95,12 @@ function getKeyInfoBack(result) {
             },
             body: JSON.stringify({ subjectDn: subjectDn })
         })
-        
+        .then(response => {
+            // if (response.ok){
+            //     console.log("response is ok")
+            //     location.replace(graphAdminUpdateChangeList)
+            // }
+        })
     }
 }
 function getCookie(name) {

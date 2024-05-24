@@ -54,7 +54,7 @@ class GraphAdmin(admin.ModelAdmin):
     list_filter = ('reservoir',
                    'year',
                    'subdivision')
-    # readonly_fields = ('status',)
+    readonly_fields = ('status',)
 
     #Add link to check each graph by pk
     def view_graph_link(self,obj):

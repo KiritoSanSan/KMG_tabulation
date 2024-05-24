@@ -20,13 +20,13 @@
 </div>
 {% endblock %}
 
+
 {% block content %}
 {% comment %} {{block.super}} {% endcomment %}
 <!-- spinner loading page start --->
 <div id="spinner-box" class='text-center mt-3'>
 	<div class="spinner-border" role="status"></div>
   </div>
-  
   <div id='data-box' class='not-visible'>
   <!-- spinner loading page end --->
 	<h1>График {{graph.subdivision}} {{graph.reservoir}} {{selected_month}} {{graph.year}}</h1>

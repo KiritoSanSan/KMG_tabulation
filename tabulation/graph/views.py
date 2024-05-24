@@ -84,6 +84,13 @@ month_names_ru = {
 def is_valid_queryparam(param):
     return param != '---' and param is not None
 
+def error(request, text):
+    messages.error(request, f'{text}')
+
+def success(request, text):
+    messages.success(request, f'{text}')
+
+
 #show sidebar
 def sidebar(request):
     admin_site = AdminSite()
@@ -185,7 +192,7 @@ def graph_admin(request):
     if 'graph_pk' in request.GET:
         graph_pk = request.GET['graph_pk']
         request.session['chosen_pk'] = graph_pk
-        
+
     
     graph_pk = request.session['chosen_pk']  
     graph = Graph.objects.get(pk=graph_pk)
@@ -248,89 +255,94 @@ def graph_admin(request):
                 time_tracking_dict[int(employee_id)][day_index] = work.worked_hours
     #creating table
     if request.method == 'POST':
-        if 'approve_graph' in request.POST:
-            pass
-        if request.headers["content-type"].strip().startswith("application/json"):
-            if 'subjectDn' in request.body.decode('utf-8'):
-                data = json.loads(request.body)
+        # if 'approve_graph' in request.POST:
+        #     pass
+        # if request.headers["content-type"].strip().startswith("application/json"):
+        if 'subjectDn' in request.body.decode('utf-8'):
+            # error(request, 'messasds')
+            data = json.loads(request.body)
+            # print(data)
+            subject_dn = data.get('subjectDn')
+            iin = None
+            users_iin = request.user.iin
+            # print("users: ",users_iin)
+            if subject_dn:
                 
-                subject_dn = data.get('subjectDn')
-                iin = None
-                users_iin = request.user.iin
-                # print("users: ",users_iin)
-                if subject_dn:
-                    match = re.search(r'IIN(\d{12})', subject_dn)
-                    if match:
-                        iin = match.group(1)
-                        # print(iin)
-                        if iin == users_iin:
-                            # from django.contrib import messages
-                            graph_pk = request.session['chosen_pk']
-                            # print(graph_pk)
-                            graph_inst = Graph.objects.get(pk=graph_pk)
-                            print(graph_inst)
-                            employees_graph = graph_inst.employees.all()
-                            tracking = TimeTracking.objects.filter(date__year=int(graph_inst.year), date__month=int(graph_inst.month),graph_id=graph_inst).select_related('employee_id')
-                            tabel_instance = None
-                            # messages.success(request,'Chto-to')
-                            try:
-                                tabel_instance = Tabel.objects.get(
-                                    reservoir=graph_inst.reservoir,
-                                    subdivision=graph_inst.subdivision,
-                                    month=graph_inst.month,
-                                    year=graph_inst.year,
-                                )
-                                if tabel_instance:
-                                    messages.error(request,'Табель уже согласован')
-                            except ObjectDoesNotExist:
-                                tabel_instance = Tabel.objects.create(
-                                    reservoir=graph_inst.reservoir,
-                                    subdivision=graph_inst.subdivision,
-                                    month=graph_inst.month,
-                                    year=graph_inst.year,
-                                )
-                                time_tracking_dict_tabel = {}
-                                for employee in employees_graph:
-                                    list = []
-                                    for day in days:
-                                        list.append(0)
-                                    time_tracking_dict_tabel[int(f'{employee.tabel_number}')] = list
-                                for work in tracking:
-                                    employee_id = work.employee_id.tabel_number
-                                    day_index = days.index(work.date.day)
-                                    time_tracking_dict_tabel[int(employee_id)][day_index] = work.worked_hours
+                match = re.search(r'IIN(\d{12})', subject_dn)
+                if match:
+                    iin = match.group(1)
+                    # `print`(iin)
+                    if iin == users_iin:
+                        # from django.contrib import messages
+                        graph_pk = request.session['chosen_pk']
+                        # print(graph_pk)
+                        graph_inst = Graph.objects.get(pk=graph_pk)
+                        # print(graph_inst)
+                        employees_graph = graph_inst.employees.all()
+                        tracking = TimeTracking.objects.filter(date__year=int(graph_inst.year), date__month=int(graph_inst.month),graph_id=graph_inst).select_related('employee_id')
+                        tabel_instance = None
+                        # messages.success(request,'Chto-to')
+                        try:
+                            tabel_instance = Tabel.objects.get(
+                                reservoir=graph_inst.reservoir,
+                                subdivision=graph_inst.subdivision,
+                                month=graph_inst.month,
+                                year=graph_inst.year,
+                            )
+                            
+                            if tabel_instance:
+                                # error(request, 'Табель уже согласован')
+                                messages.success(request,'Табель уже согласован')
+                        except ObjectDoesNotExist:
+                            tabel_instance = Tabel.objects.create(
+                                reservoir=graph_inst.reservoir,
+                                subdivision=graph_inst.subdivision,
+                                month=graph_inst.month,
+                                year=graph_inst.year,
+                            )
+                            time_tracking_dict_tabel = {}
+                            for employee in employees_graph:
+                                list = []
+                                for day in days:
+                                    list.append(0)
+                                time_tracking_dict_tabel[int(f'{employee.tabel_number}')] = list
+                            for work in tracking:
+                                employee_id = work.employee_id.tabel_number
+                                day_index = days.index(work.date.day)
+                                time_tracking_dict_tabel[int(employee_id)][day_index] = work.worked_hours
 
-                                for employee in employees_graph:
-                                    for work in tracking:
-                                        if work.employee_id == employee:
-                                            employee_id = work.employee_id.tabel_number
-                                            day_index = days.index(work.date.day)
-                                            time_tracking_dict_tabel[int(employee_id)][day_index] = work.worked_hours
-                                    
-                                time_tracking_tabel_instances = []
-                                for employee_id, values in time_tracking_dict_tabel.items():
-                                    for day_index, worked_hours in enumerate(values):
-                                        time_tracking_tabel_instances.append(TimeTrackingTabel(
-                                            employee_id=Employees.objects.get(tabel_number=employee_id),
-                                            date=datetime.datetime(int(graph_inst.year), int(graph_inst.month), days[day_index]),
-                                            worked_hours=worked_hours,
-                                            tabel_id = tabel_instance
-                                        ))
-                                TimeTrackingTabel.objects.bulk_create(time_tracking_tabel_instances)
-                                tabel_instance.employees.set(employees_graph)
-                                # print(iin)
-                                # graph_inst.status = 'Согласованный'
-                                print(graph_inst.status)
-                                graph_inst.save()
-                                json_base64 = graph_to_json(graph_pk)
-                                base64 = text_to_base64(json_base64)
-                                messages.success(request,'Табель согласован')
-                                return redirect('admin:tabel_tabel_changelist')
-                        else:
-                            messages.error(request,'Вы не можете согласовать график')
-                            print('net')
-                    # print("IIN: ",iin)
-        
+                            for employee in employees_graph:
+                                for work in tracking:
+                                    if work.employee_id == employee:
+                                        employee_id = work.employee_id.tabel_number
+                                        day_index = days.index(work.date.day)
+                                        time_tracking_dict_tabel[int(employee_id)][day_index] = work.worked_hours
+                                
+                            time_tracking_tabel_instances = []
+                            for employee_id, values in time_tracking_dict_tabel.items():
+                                for day_index, worked_hours in enumerate(values):
+                                    time_tracking_tabel_instances.append(TimeTrackingTabel(
+                                        employee_id=Employees.objects.get(tabel_number=employee_id),
+                                        date=datetime.datetime(int(graph_inst.year), int(graph_inst.month), days[day_index]),
+                                        worked_hours=worked_hours,
+                                        tabel_id = tabel_instance
+                                    ))
+                            TimeTrackingTabel.objects.bulk_create(time_tracking_tabel_instances)
+                            tabel_instance.employees.set(employees_graph)
+                            # print(iin)
+                            graph_inst.status = 'Согласованный'
+                            graph_inst.save()
+                            
+                            json_base64 = graph_to_json(graph_pk)
+                            base64 = text_to_base64(json_base64)
+                            print(messages.success(request,'Табель согласован'))
+                            return redirect("{% url 'admin:tabel_tabel_changelist' %}")
+                    else:
+                        print('net')
+                        messages.error(request, f'Вы не можете согласовать график')
+
+                # print("IIN: ",iin)
+    
     #
 
     
@@ -407,40 +419,45 @@ def graph_admin_update(request):
                 time_tracking_dict[int(employee_id)][day_index] = work.worked_hours
 
     if request.method == 'POST':
-        if request.headers["content-type"].strip().startswith("application/json"):
-            if "employee_id_delete" in request.body.decode('utf-8'):
-                employee_deletion_data = json.loads(request.body)
-                employee_tabel_number = employee_deletion_data.get('employee_id_delete')
-                employee_delete = Employees.objects.get(pk=employee_tabel_number)
-                # employee_delete = employees.get(pk=employee_tabel_number)
+        # if request.headers["content-type"].strip().startswith("application/json"):
 
-                graph.employees.remove(employee_delete)
-                # TimeTracking.objects.filter(employee_id = employee_tabel_number).delete()
-                tracking.filter(employee_id = employee_tabel_number).delete()
-                messages.success(request,f'Сотрудник {employee_delete.name} удален')
+        if "employee_id_delete" in request.body.decode('utf-8'):
+            employee_deletion_data = json.loads(request.body)
+            employee_tabel_number = employee_deletion_data.get('employee_id_delete')
+            employee_delete = Employees.objects.get(pk=employee_tabel_number)
+            # employee_delete = employees.get(pk=employee_tabel_number)
+
+            graph.employees.remove(employee_delete)
+            # TimeTracking.objects.filter(employee_id = employee_tabel_number).delete()
+            tracking.filter(employee_id = employee_tabel_number).delete()
+            messages.success(request,f'Сотрудник {employee_delete.name} удален')
+
+        if "employee_id" in request.body.decode('utf-8'):
+            employee_addition_data = json.loads(request.body)
+            employee_tabel_number = employee_addition_data.get('employee_id')
+            # employee_graph = employee_addition_data.get('graph_pk')
+            employee_add = Employees.objects.get(pk=employee_tabel_number)
+            for day in days:
+                # TimeTracking.objects.create(
+                #     employee_id = employee_add,
+                #     date = datetime.datetime(year, month, day),
+                #     worked_hours = ''
+                TimeTracking.objects.bulk_create(
+                    [
+                    TimeTracking(employee_id = employee_add,
+                    date = datetime.datetime(year, month, day),
+                    worked_hours = '',
+                    graph_id = graph
+                    )
+                    ]
+                )
+            graph.employees.add(employee_tabel_number)
+            messages.success(request,f'Сотрудник {employee_add.name} добавлен')
+
+        
 
                     
-            if "employee_id" in request.body.decode('utf-8'):
-                employee_addition_data = json.loads(request.body)
-                employee_tabel_number = employee_addition_data.get('employee_id')
-                # employee_graph = employee_addition_data.get('graph_pk')
-                employee_add = Employees.objects.get(pk=employee_tabel_number)
-                for day in days:
-                    # TimeTracking.objects.create(
-                    #     employee_id = employee_add,
-                    #     date = datetime.datetime(year, month, day),
-                    #     worked_hours = ''
-                    TimeTracking.objects.bulk_create(
-                        [
-                        TimeTracking(employee_id = employee_add,
-                        date = datetime.datetime(year, month, day),
-                        worked_hours = '',
-                        graph_id = graph
-                        )
-                        ]
-                    )
-                graph.employees.add(employee_tabel_number)
-                messages.success(request,f'Сотрудник {employee_add.name} добавлен')
+            
     
         for key,value in request.POST.items():
             if key.startswith('worked_hours_'):
@@ -486,7 +503,6 @@ def graph_admin_update(request):
     
     name_month_en = calendar.month_name[int(month)]
     name_month_ru = month_names_ru[name_month_en]
-    
 
     #attendance calculation
     directory = {}

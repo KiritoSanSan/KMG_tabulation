@@ -2,7 +2,9 @@
 {% load static %}
 
 {% block extrahead %}
-
+<script>
+  var graphAdminUpdateChangeList = "{%url 'admin:tabel_tabel_changelist' %}"
+</script>
 <script type="text/javascript">
   var graphAdminUrl = "{% url 'graph:graph_admin' %}";
 </script>
@@ -32,6 +34,7 @@
   &rsaquo; <a href="">График {{graph.subdivision}} {{graph.reservoir}} за {{selected_month}} {{year}}</a>
 </div>
 {% endblock %}
+
 
 {% block content %}
 <div style="display:none">
