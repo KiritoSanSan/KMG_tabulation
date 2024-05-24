@@ -129,9 +129,10 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
     BASE_DIR / "graph" / "static",
 ]
-# STATICFILES_DIRS = (
-#   os.path.join(BASE_DIR, 'static\\'),
-# )
+
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, "graph/static"),
+# ]
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
@@ -141,7 +142,7 @@ AUTH_USER_MODEL = 'users.CustomUser'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
-DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240 # higher than the count of fields
+# DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240 # higher than the count of fields
 
 
 INTERNAL_IPS = [
