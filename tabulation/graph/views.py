@@ -145,45 +145,6 @@ def sidebar(request):
     admin_context.update(data)
     return admin_context
 
-def home(request):
-    graph =  Graph.objects.all()
-    reservoir_form = GraphReservoirForm()
-    subdivision_form = GraphSubdivisionForm()
-    years = YearSelectForm()
-
-    #filters
-
-    filter_year = request.GET.get('years')
-    request.session['selected_year'] = filter_year
-
-    filter_reservoir = request.GET.get('mesto')
-    request.session['selected_reservoir'] = filter_reservoir
-
-    filter_subdiv = request.GET.get('podrazd')
-    request.session['selected_subdivision'] = filter_subdiv
-
-
-    if is_valid_queryparam(filter_year):
-        graph = graph.filter(year=filter_year)
-
-    if is_valid_queryparam(filter_reservoir):
-        graph = graph.filter(reservoir__name__icontains=filter_reservoir)
-
-    if is_valid_queryparam(filter_subdiv):
-        graph = graph.filter(subdivision__name__icontains=filter_subdiv)
-
-        
-    context = {
-        'selected_year':request.session['selected_year'],
-        "selected_reservoir": request.session['selected_reservoir'],
-        "selected_subdivision": request.session['selected_subdivision'],        
-        'graph':graph,
-        'year_form':years,
-        "reservoir":reservoir_form,
-        "subdivision":subdivision_form,
-    }
-    return render(request,'graph/home.html',context)
-
 @login_required(login_url='admin/login/')
 @allowed_users(allowed_roles=['Табельщик', 'Администратор', 'Руководитель'])
 def graph_admin(request):

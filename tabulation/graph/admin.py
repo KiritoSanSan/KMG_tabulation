@@ -65,7 +65,7 @@ class GraphAdmin(admin.ModelAdmin):
                     +urlencode({'graph_pk':graph})
         )
         return format_html('<a href={}>{}',url,f"График Вахты №{graph}")
-        view_graph_link.short_description = 'Графики'
+    view_graph_link.short_description = 'Графики'
     def parsing_graph(self,obj):
         url = (reverse('graph:graph_parsing'))
         return format_html('<a href={}>{}',url,'Парсинг Excel Графиков')

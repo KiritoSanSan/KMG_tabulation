@@ -1,0 +1,10 @@
+django
+django-crispy-forms
+et-xmlfile
+numpy
+openpyxl
+pandas
+pytz
+sqlparse
+tzdata
+xlrd
