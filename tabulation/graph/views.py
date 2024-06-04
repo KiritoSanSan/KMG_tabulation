@@ -1,6 +1,8 @@
 import calendar
 import json
 import logging
+
+from django.contrib.auth import get_user_model
 logger = logging.getLogger(__name__)
 import re
 from django.views.decorators.csrf import csrf_exempt
@@ -248,6 +250,8 @@ def graph_admin(request):
                 time_tracking_dict[int(employee_id)][day_index] = work.worked_hours
     #creating table
     if request.method == 'POST':
+        if 'not_sogl' in request.POST:
+            messages.error(request, 'График уже согласован и не может быть изменен')
         if 'approve_graph' in request.POST:
             pass
         if request.headers["content-type"].strip().startswith("application/json"):
@@ -263,12 +267,13 @@ def graph_admin(request):
                     if match:
                         iin = match.group(1)
                         # print(iin)
+
                         if iin == users_iin:
                             # from django.contrib import messages
                             graph_pk = request.session['chosen_pk']
                             # print(graph_pk)
                             graph_inst = Graph.objects.get(pk=graph_pk)
-                            print(graph_inst)
+                            # print(graph_inst)
                             employees_graph = graph_inst.employees.all()
                             tracking = TimeTracking.objects.filter(date__year=int(graph_inst.year), date__month=int(graph_inst.month),graph_id=graph_inst).select_related('employee_id')
                             tabel_instance = None
@@ -282,6 +287,8 @@ def graph_admin(request):
                                 )
                                 if tabel_instance:
                                     messages.error(request,'Табель уже согласован')
+                                    # return JsonResponse({'exists': True})
+
                             except ObjectDoesNotExist:
                                 tabel_instance = Tabel.objects.create(
                                     reservoir=graph_inst.reservoir,
@@ -319,18 +326,31 @@ def graph_admin(request):
                                 TimeTrackingTabel.objects.bulk_create(time_tracking_tabel_instances)
                                 tabel_instance.employees.set(employees_graph)
                                 # print(iin)
-                                # graph_inst.status = 'Согласованный'
-                                print(graph_inst.status)
+                                graph_inst.status = 'Согласованный'
                                 graph_inst.save()
-                                json_base64 = graph_to_json(graph_pk)
-                                base64 = text_to_base64(json_base64)
-                                messages.success(request,'Табель согласован')
-                                return redirect('admin:tabel_tabel_changelist')
+                                
+
+                                # return redirect('admin:tabel_tabel_changelist')
+                                # return JsonResponse({'exists': False})
+                                
+
                         else:
                             messages.error(request,'Вы не можете согласовать график')
                             print('net')
                     # print("IIN: ",iin)
-        
+            if 'cms' in request.body.decode('utf-8'):
+                data = json.loads(request.body)
+                cms = data.get('cms')
+                graph_pk = request.session['chosen_pk']
+                graph_inst = Graph.objects.get(pk=graph_pk)
+                json_base64 = graph_to_json(request,graph_pk)
+                graph_inst.graph_json = json_base64
+                
+
+                graph_inst.cms = cms
+                graph_inst.save()
+                messages.success(request,'CMS успешно добавлен')
+                return redirect('graph:graph_admin')
     #
 
     
@@ -417,7 +437,7 @@ def graph_admin_update(request):
                 graph.employees.remove(employee_delete)
                 # TimeTracking.objects.filter(employee_id = employee_tabel_number).delete()
                 tracking.filter(employee_id = employee_tabel_number).delete()
-                messages.success(request,f'Сотрудник {employee_delete.name} удален')
+                messages.success(request,f'Сотрудник {employee_delete.surname} {employee_delete.name} удален')
 
                     
             if "employee_id" in request.body.decode('utf-8'):
@@ -441,7 +461,7 @@ def graph_admin_update(request):
                     )
                 graph.employees.add(employee_tabel_number)
                 messages.success(request,f'Сотрудник {employee_add.name} добавлен')
-    
+
         for key,value in request.POST.items():
             if key.startswith('worked_hours_'):
                 time_tracking_day = int(key.split('_')[4])
@@ -765,7 +785,7 @@ def upload_file(request):
     context.update(sidebar(request))
     return render(request,'graph/parsing_graph.html',context)
 
-def graph_to_json(graph_pk):
+def graph_to_json(request,graph_pk):
     """
     "graph":{
         graph_pk:{
@@ -773,7 +793,6 @@ def graph_to_json(graph_pk):
             "month":month,
             "reservoir":reservoir,
             "subdivision":subivision,
-            "status":status,
             "employees":{
                 employee_tabel_number:{
                     "name":name,
@@ -785,8 +804,8 @@ def graph_to_json(graph_pk):
                     timetracking : {
                         date:worked_hours,
                         },
-                    "total_days_worked":total_days_worked,
-                    "total_rest_days":total_rest_days,
+                    "worked_days":total_days_worked,
+                    "weekends":weekends,
                     "total_days_in_month":total_days_in_month",
                     "total_hours":total_hours
                 }
@@ -799,22 +818,26 @@ def graph_to_json(graph_pk):
     employees = graph.employees.all()
     reservoir = graph.reservoir.name
     subdivision = graph.subdivision.name
+    user = request.user
     month = graph.month
     year = int(graph.year)
     num_days = calendar.monthrange(int(year),int(month))[1]
     days = range(1,num_days+1)
+    name_month_en = calendar.month_name[int(month)]
+    name_month_ru = month_names_ru[name_month_en]
     tracking = TimeTracking.objects.filter(date__year=year, date__month=int(month), graph_id = graph).select_related('employee_id')
     graph_json = {
-    "graph": {
-        str(graph_pk): {
-            "year": year,
-            "month": month,
-            "reservoir": f"{reservoir}",
-            "subdivision": f"{subdivision}",
-            "status": graph.status,
-            "employees": {}
+        "graph": {
+            str(graph_pk): {
+                "year": year,
+                "month": name_month_ru,
+                "reservoir": f"{reservoir}",
+                "subdivision": f"{subdivision}",
+                "employees": {},
+                "Согласовал":f"{user.first_name} {user.last_name} {user.middlename} {user.iin}",
+                "time":f'{datetime.datetime.now()}'
+                }
             }
-        }
     }
     time_tracking_dict = defaultdict(lambda: {f"{day}.{month}.{year}": 0 for day in days})
 
@@ -869,7 +892,7 @@ def graph_to_json(graph_pk):
             
         }
         graph_json["graph"][str(graph_pk)]["employees"][employee.tabel_number] = employee_dict
-    path = f'../tabulation/graph_json.json'
+    path = f'../tabulation/graph/soglasovanie_graphs_json/График_{subdivision}_{reservoir}_{name_month_ru}_{year}.json'
     with open(path,'w',encoding='utf-8') as json_file:
         json.dump(graph_json,json_file,ensure_ascii=False,indent=4)
     # print(json.dumps(graph_json,ensure_ascii=False,indent=4))
@@ -878,10 +901,6 @@ def graph_to_json(graph_pk):
     json_base64 = base64.b64encode(json_str.encode('utf-8')).decode('utf-8')
     return json_base64
 
-def text_to_base64(text):
-    import base64
-    text_base64 = base64.b64encode(text.encode('utf-8')).decode('utf-8')
-    return text_base64
 
 
 

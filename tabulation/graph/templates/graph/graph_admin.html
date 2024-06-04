@@ -5,6 +5,7 @@
 
 <script type="text/javascript">
   var graphAdminUrl = "{% url 'graph:graph_admin' %}";
+  var graphAdminUpdateChangeList = "{%url 'admin:tabel_tabel_changelist' %}"
 </script>
 <link rel="stylesheet" href="{% static 'graph\css\graph_admin.css' %}">
 {% comment %} <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script> {% endcomment %}
@@ -46,7 +47,7 @@
 
 <div id='data-box' class='not-visible'>
 <!-- spinner loading page end --->
-<h1>График {{graph.subdivision}} {{graph.reservoir}} {{selected_month}} {{graph.year}}</h1>
+<h1>График {{graph.subdivision}} {{graph.reservoir}} {{selected_month}} {{graph.year}} {{graph.status}}</h1>
 
 <table class="admin_table">
   <thead>
@@ -128,23 +129,29 @@
   {% csrf_token %}
   <input type="hidden" name="graph_pk" value="{{ graph_pk }}">
   <input type="hidden" id="base64ToSign" name="base64ToSign" value="{{ json_base64 }}">
-    {% comment %} <input type="file" id="fileInput" style="display: none;" /> {% endcomment %}
 
   <input type="submit" value="Согласовать" name="approve_graph" class="default" onclick="createCAdESFromBase64Call();">
   <input style="display:none"type="checkbox" id="flagForBase64" />
   <input value="Получить данные ключа" onclick="getKeyInfoCall();" type="button" class="mb-3" />			
-
-
+  {% comment %} <input value="Получить данные ключа" onclick="getKeyInfoCall();" type="button" class="mb-3" />			 {% endcomment %}
 
 </form>
 {% endif %}
-
 {% if perms.graph.change_graph %}
-<a href="{% url 'graph:graph_admin_update' %}">
-  <input type="submit" value="Редактировать" class="default">
-</a>
-{% endif %}
+  {% if graph.status == 'Не согласованный' %}
 
+    <a href="{% url 'graph:graph_admin_update' %}">
+      <input type="submit" value="Редактировать" class="default">
+    </a>
+
+  {% else %}
+    <form method="post">
+      {% csrf_token %}
+      <input type="submit" value="Редактировать" class="default" name="not_sogl">
+    </form>
+  {% endif %}
+
+{% endif %}
 <a style="float: right;" href="/admin/graph/graph">
   <input type="button" value="Назад" class="default">
 </a>

@@ -14,9 +14,37 @@ function getCookie(name) {
 }
 const csrftoken = getCookie('csrftoken');
 
+var webSocket = new WebSocket('wss://127.0.0.1:13579/');
+var callback = null;
 
 
+webSocket.onmessage = function (event) {
+    var result = JSON.parse(event.data);
 
+	if (result != null) {
+		var rw = {
+			code: result['code'],
+			message: result['message'],
+			responseObject: result['responseObject'],
+			getResult: function () {
+				return this.result;
+			},
+			getMessage: function () {
+				return this.message;
+			},
+			getResponseObject: function () {
+				return this.responseObject;
+			},
+			getCode: function () {
+				return this.code;
+			}
+        };
+        if (callback != null) {
+            window[callback](rw);
+        }
+	}
+	// console.log(event);
+};
 
 
 
@@ -53,13 +81,15 @@ function getKeyInfoCall() {
     var base64ToSign = $("#base64ToSign").val();
     var selectedStorage = $('#storageSelect').val();
     getKeyInfo(selectedStorage, "getKeyInfoBack");
-    // createCAdESFromBase64(selectedStorage, "SIGNATURE", base64ToSign, flag, "createCAdESFromBase64Back");
+    createCAdESFromBase64(selectedStorage, "SIGNATURE", base64ToSign, flag, "createCAdESFromBase64Back");
 }
 // const graphAdminUpdateChangeList = "{%url 'admin:tabel_tabel_changelist' %}"
 
 function getKeyInfoBack(result) {
     unblockScreen();
-    
+    var selectedStorage = $('#storageSelect').val();
+    var flag = $("#flagForBase64").is(':checked');
+    var base64ToSign = $("#base64ToSign").val();
     if (result['code'] === "500") {
         // alert(result['message']+'');
         alert('Ошибка при получении информации о ключе!');
@@ -77,13 +107,13 @@ function getKeyInfoBack(result) {
             },
             body: JSON.stringify({ subjectDn: subjectDn })
         }).then(response => {
-            var selectedStorage = $('#storageSelect').val();
-            var flag = $("#flagForBase64").is(':checked');
-            var base64ToSign = $("#base64ToSign").val();
             if (base64ToSign !== null && base64ToSign !== "") {
                 
                 // $.blockUI();
-                createCAdESFromBase64(selectedStorage, "SIGNATURE", base64ToSign, flag, "createCAdESFromBase64Back");
+                // createCAdESFromBase64(selectedStorage, "SIGNATURE", base64ToSign, flag, "createCAdESFromBase64Back");
+                
+                
+
             } else {
                 alert("Нет данных для подписи!");
             }
@@ -91,15 +121,6 @@ function getKeyInfoBack(result) {
 
     }
 }
-
-
-
-
-
-
-
-
-
 
 
 function getActiveTokensCall() {

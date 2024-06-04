@@ -3,6 +3,16 @@
 
 {% block extrahead %}
 <link rel="stylesheet" href="{% static 'tabel\css\tabel_admin.css' %}">
+<script type="text/javascript">
+  var tabelAdminUrl = "{% url 'graph:graph_admin' %}";
+  var tabelAdminUpdateChangeList = "{%url 'admin:tabel_tabel_changelist' %}"
+</script>
+<script src="{% static 'graph/js/jquery.js' %}"></script>
+
+<script src="{% static 'graph/js/ncalayer.js' %}"></script>
+<script src="{% static 'graph/js/process-ncalayer-calls.js' %}"></script>
+<script src="{% static 'graph/js/jquery.blockUI.js' %}"></script>
+
 {% endblock %}
 
 {% block branding %}
@@ -19,6 +29,11 @@
 {% endblock %}
 
 {% block content %}
+<div style="display:none">
+  <select id="storageSelect" class="custom-select">
+    <option value="PKCS12" selected>PKCS12</option>
+</select>
+</div>
 <!-- spinner loading page start --->
 <div id="spinner-box" class='text-center'>
   <div class="spinner-border" role="status"></div>
@@ -198,14 +213,27 @@
   <form style="width: 10%;" method="post" action="/tabel_admin?tabel_pk={{tabel_pk}}" name='soglasovat' onsubmit="return confirmSubmit();">
     {% csrf_token %}
     <input type="hidden" name="tabel_pk" value="{{ tabel_pk }}">
+    <input type="hidden" id="base64ToSign" name="base64ToSign" value="{{ json_base64 }}">
+
     <input type="submit" value="Утвердить" name="approve_graph" class="default">
+    <input style="display:none"type="checkbox" id="flagForBase64" />
+    <input value="Получить данные ключа" onclick="getKeyInfoCall();" type="button" class="mb-3" />	
   </form>
   {% endif %}
 
   {% if perms.tabel.change_tabel %}
-  <a href="{% url 'tabel:tabel_admin_update' %}">
-    <input type="submit" value="Редактировать" class="default">
-  </a>
+    {% if tabel.status == 'Не утвержден' %}
+
+      <a href="{% url 'tabel:tabel_admin_update' %}">
+        <input type="submit" value="Редактировать" class="default">
+      </a>
+
+    {% else %}
+      <form method="post">
+        {% csrf_token %}
+        <input type="submit" value="Редактировать" class="default" name="not_sogl">
+      </form>
+    {% endif %}
   {% endif %}
 
   <a style="float: right;" href="/admin/tabel/tabel">

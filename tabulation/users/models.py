@@ -9,6 +9,7 @@ class CustomUser(AbstractUser, PermissionsMixin):
     iin = models.CharField(verbose_name='ИИН',max_length=12,unique=True,validators=[MinLengthValidator(12,'Не правильный ИИН')])
     first_name = models.CharField(max_length=100,verbose_name="Имя")
     last_name = models.CharField(max_length=100,verbose_name="Фамилия")
+    middlename = models.CharField(max_length=100,verbose_name='Отчество')
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     date_joined = models.DateTimeField(verbose_name="Когда зарегистрирован",auto_now_add=True)

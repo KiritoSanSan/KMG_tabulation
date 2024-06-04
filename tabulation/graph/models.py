@@ -33,10 +33,6 @@ ATTENDACE_CHOICES = (
     ("дни явок","Дни Явок"),
     ('дни неявок',"Дни Неявок")
 )
-GRAPH_CHOICES = (
-    ("не согласованный","Не согласованный"),
-    ('согласованный',"Согласованный"),
-)
 class Job(models.Model):
     name = models.CharField(max_length = 100, verbose_name = "Название",unique=True)
     description = models.CharField(max_length=200, verbose_name = "Описание",null=True)
@@ -115,15 +111,14 @@ class Graph(models.Model):
     month = models.CharField(max_length = 100,verbose_name='Месяц',choices=MONTH_CHOICES_RU,default=None)
     year = models.CharField(verbose_name = 'Год',choices=YEARS_CHOICES,max_length=4,default=None)
     employees = models.ManyToManyField(Employees,through="GraphEmployeesList",related_name='graph_employee',verbose_name='Работники')
-    status = models.CharField(choices=GRAPH_CHOICES,default='Не согласованный',max_length=20,verbose_name='Статус')
-
+    status = models.CharField(default='Не согласованный',max_length=20,verbose_name='Статус')
+    graph_json = models.TextField(verbose_name='base64 json Графика',null=True)
+    cms = models.TextField(verbose_name='cms График',null=True)
     class Meta:
         verbose_name = 'График'
         verbose_name_plural = "Графики"
         unique_together = ('reservoir', 'subdivision','month','year')
-        
-    def get_status_display(self):
-        return dict(GRAPH_CHOICES).get(self.status, self.status)
+
 
     def __str__(self) -> str:
         return f"{self.id} {self.subdivision} {self.reservoir}"

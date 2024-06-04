@@ -21,21 +21,21 @@ YEARS_CHOICES = (
     ('2024','2024'),
     ('2025','2025')
 )
-TABLE_CHOICE = (
-    ('не утвержден',"Не утвержден"),
-    ("утвержден","Утвержден")
-)
 class Tabel(models.Model):
     reservoir= models.ForeignKey('graph.OilPlace', verbose_name="Месторождение",related_name='tabel_reservoir', on_delete=models.CASCADE)
     subdivision = models.ForeignKey('graph.Subdivision', verbose_name="Подразделение", on_delete=models.CASCADE,related_name = 'tabel_subdivision')
     month = models.CharField(max_length = 100,verbose_name='Месяц',choices=MONTH_CHOICES_RU,default=None)
     year = models.CharField(verbose_name = 'Год',choices=YEARS_CHOICES,max_length=4,default=None)
     employees = models.ManyToManyField('graph.Employees',through="TabelEmployeesList",related_name='tabel_employee',verbose_name='Работники')
-    status = models.CharField(choices=TABLE_CHOICE,default='Не утвержден',max_length=20,verbose_name='Статус')
+    status = models.CharField(default='Не утвержден',max_length=20,verbose_name='Статус')
+    tabel_json = models.TextField(verbose_name='base64 json Табеля',null=True)
     
+    cms = models.TextField(verbose_name='cms Табеля',null=True)
     class Meta:
-            verbose_name = 'Согласованный Табель'
-            verbose_name_plural = "Согласованные Табеля"
+        verbose_name = 'Согласованный Табель'
+        verbose_name_plural = "Согласованные Табеля"
+        unique_together = ('reservoir', 'subdivision','month','year')
+
 
     def __str__(self) -> str:
         return f"{self.id} {self.subdivision} {self.reservoir}"
