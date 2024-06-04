@@ -86,6 +86,13 @@ month_names_ru = {
 def is_valid_queryparam(param):
     return param != '---' and param is not None
 
+def error(request, text):
+    messages.error(request, f'{text}')
+
+def success(request, text):
+    messages.success(request, f'{text}')
+
+
 #show sidebar
 def sidebar(request):
     admin_site = AdminSite()
@@ -140,45 +147,6 @@ def sidebar(request):
     admin_context.update(data)
     return admin_context
 
-def home(request):
-    graph =  Graph.objects.all()
-    reservoir_form = GraphReservoirForm()
-    subdivision_form = GraphSubdivisionForm()
-    years = YearSelectForm()
-
-    #filters
-
-    filter_year = request.GET.get('years')
-    request.session['selected_year'] = filter_year
-
-    filter_reservoir = request.GET.get('mesto')
-    request.session['selected_reservoir'] = filter_reservoir
-
-    filter_subdiv = request.GET.get('podrazd')
-    request.session['selected_subdivision'] = filter_subdiv
-
-
-    if is_valid_queryparam(filter_year):
-        graph = graph.filter(year=filter_year)
-
-    if is_valid_queryparam(filter_reservoir):
-        graph = graph.filter(reservoir__name__icontains=filter_reservoir)
-
-    if is_valid_queryparam(filter_subdiv):
-        graph = graph.filter(subdivision__name__icontains=filter_subdiv)
-
-        
-    context = {
-        'selected_year':request.session['selected_year'],
-        "selected_reservoir": request.session['selected_reservoir'],
-        "selected_subdivision": request.session['selected_subdivision'],        
-        'graph':graph,
-        'year_form':years,
-        "reservoir":reservoir_form,
-        "subdivision":subdivision_form,
-    }
-    return render(request,'graph/home.html',context)
-
 @login_required(login_url='admin/login/')
 @allowed_users(allowed_roles=['Табельщик', 'Администратор', 'Руководитель'])
 def graph_admin(request):
@@ -187,7 +155,7 @@ def graph_admin(request):
     if 'graph_pk' in request.GET:
         graph_pk = request.GET['graph_pk']
         request.session['chosen_pk'] = graph_pk
-        
+
     
     graph_pk = request.session['chosen_pk']  
     graph = Graph.objects.get(pk=graph_pk)
@@ -427,17 +395,18 @@ def graph_admin_update(request):
                 time_tracking_dict[int(employee_id)][day_index] = work.worked_hours
 
     if request.method == 'POST':
-        if request.headers["content-type"].strip().startswith("application/json"):
-            if "employee_id_delete" in request.body.decode('utf-8'):
-                employee_deletion_data = json.loads(request.body)
-                employee_tabel_number = employee_deletion_data.get('employee_id_delete')
-                employee_delete = Employees.objects.get(pk=employee_tabel_number)
-                # employee_delete = employees.get(pk=employee_tabel_number)
+        # if request.headers["content-type"].strip().startswith("application/json"):
 
-                graph.employees.remove(employee_delete)
-                # TimeTracking.objects.filter(employee_id = employee_tabel_number).delete()
-                tracking.filter(employee_id = employee_tabel_number).delete()
-                messages.success(request,f'Сотрудник {employee_delete.surname} {employee_delete.name} удален')
+        if "employee_id_delete" in request.body.decode('utf-8'):
+            employee_deletion_data = json.loads(request.body)
+            employee_tabel_number = employee_deletion_data.get('employee_id_delete')
+            employee_delete = Employees.objects.get(pk=employee_tabel_number)
+            # employee_delete = employees.get(pk=employee_tabel_number)
+
+            graph.employees.remove(employee_delete)
+            # TimeTracking.objects.filter(employee_id = employee_tabel_number).delete()
+            tracking.filter(employee_id = employee_tabel_number).delete()
+            messages.success(request,f'Сотрудник {employee_delete.surname} {employee_delete.name} удален')
 
                     
             if "employee_id" in request.body.decode('utf-8'):
@@ -506,7 +475,6 @@ def graph_admin_update(request):
     
     name_month_en = calendar.month_name[int(month)]
     name_month_ru = month_names_ru[name_month_en]
-    
 
     #attendance calculation
     directory = {}
