@@ -2,9 +2,7 @@
 {% load static %}
 
 {% block extrahead %}
-<script>
-  var graphAdminUpdateChangeList = "{%url 'admin:tabel_tabel_changelist' %}"
-</script>
+
 <script type="text/javascript">
   var graphAdminUrl = "{% url 'graph:graph_admin' %}";
   var graphAdminUpdateChangeList = "{%url 'admin:tabel_tabel_changelist' %}"
@@ -12,16 +10,12 @@
 <link rel="stylesheet" href="{% static 'graph\css\graph_admin.css' %}">
 {% comment %} <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script> {% endcomment %}
 <script src="{% static 'graph/js/jquery.js' %}"></script>
-
+<script src="{% static 'graph/js/jquery.blockUI.js' %}"></script>
 <script src="{% static 'graph/js/ncalayer.js' %}"></script>
 <script src="{% static 'graph/js/process-ncalayer-calls.js' %}"></script>
-<script src="{% static 'graph/js/jquery.blockUI.js' %}"></script>
 
 {% endblock %}
 
-{% block additional_scripts %}
-{{block.super}}
-{% endblock %}
 
 {% block branding %}
   <a href="{% url 'admin:index' %}"><h1 id="site-name">Админ Панель</h1></a>
@@ -127,15 +121,14 @@
 </table>
 
 {% if perms.graph.add_time_tracking %}
-{% comment %} <form style="width: 10%;" method="post" action="/graph_admin?graph_pk={{graph_pk}}" name='soglasovat' onsubmit="return confirmSubmit();"> {% endcomment %}
 <form style="width: 10%;" method="post" action="/graph_admin?graph_pk={{graph_pk}}" name='soglasovat'>
   {% csrf_token %}
   <input type="hidden" name="graph_pk" value="{{ graph_pk }}">
   <input type="hidden" id="base64ToSign" name="base64ToSign" value="{{ json_base64 }}">
 
-  <input type="submit" value="Согласовать" name="approve_graph" class="default" onclick="createCAdESFromBase64Call();">
+  {% comment %} <input type="submit" value="Согласовать" name="approve_graph" class="default" onclick="createCAdESFromBase64Call();"> {% endcomment %}
   <input style="display:none"type="checkbox" id="flagForBase64" />
-  <input value="Получить данные ключа" onclick="getKeyInfoCall();" type="button" class="mb-3" />			
+  <input value="Согласовать" onclick="createCAdESFromBase64Call();" type="button" class="mb-3" />			
   {% comment %} <input value="Получить данные ключа" onclick="getKeyInfoCall();" type="button" class="mb-3" />			 {% endcomment %}
 
 </form>
@@ -188,43 +181,7 @@
 </script>
   
 
-<script>
-  function confirmSubmit() {
-    // Confirm submission
-    const userConfirmed = confirm("Вы уверены, что хотите согласовать График?");
-    
-    if (userConfirmed) {
-      const spinnerBox = document.getElementById('spinner-box');
-      const dataBox = document.getElementById('data-box');
-      
-      // Show spinner and hide data
-      spinnerBox.style.display = 'block';
-      dataBox.style.display = 'none';
-      
-      // Log confirmation message
-      console.log("Вы уверены, что хотите согласовать График?");
-      
-      // Perform AJAX request
-      $.ajax({
-        type: 'POST',
-        url: '{% url "graph:graph_admin" %}?{{ graph_pk }}',
-        success: function(response) {
-          // Hide spinner and show data after successful response
-          spinnerBox.style.display = 'none';
-          dataBox.style.display = 'block';
-        },
-        error: function(error) {
-          // Handle error if AJAX request fails
-          console.error('Error:', error);
-          // Revert to initial state if there's an error
-          spinnerBox.style.display = 'block';
-          dataBox.style.display = 'none';
-        }
-      });
-    }
-    return userConfirmed;
-  }
-</script>
+
 
 
 

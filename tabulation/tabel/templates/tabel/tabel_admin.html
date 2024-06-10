@@ -2,16 +2,16 @@
 {% load static %}
 
 {% block extrahead %}
-<link rel="stylesheet" href="{% static 'tabel\css\tabel_admin.css' %}">
 <script type="text/javascript">
-  var tabelAdminUrl = "{% url 'graph:graph_admin' %}";
+  var tabelAdminUrl = "{% url 'tabel:tabel_admin' %}";
   var tabelAdminUpdateChangeList = "{%url 'admin:tabel_tabel_changelist' %}"
 </script>
-<script src="{% static 'graph/js/jquery.js' %}"></script>
+<link rel="stylesheet" href="{% static 'tabel\css\tabel_admin.css' %}">
 
-<script src="{% static 'graph/js/ncalayer.js' %}"></script>
-<script src="{% static 'graph/js/process-ncalayer-calls.js' %}"></script>
-<script src="{% static 'graph/js/jquery.blockUI.js' %}"></script>
+<script src="{% static 'tabel/js/jquery.js' %}"></script>
+<script src="{% static 'tabel/js/jquery.blockUI.js' %}"></script>
+<script src="{% static 'tabel/js/ncalayer.js' %}"></script>
+<script src="{% static 'tabel/js/process-ncalayer-calls.js' %}"></script>
 
 {% endblock %}
 
@@ -40,6 +40,8 @@
 </div>
 
 <div id='data-box' class='not-visible'>
+<h1>Табель {{tabel.subdivision}} {{tabel.reservoir}} {{selected_month}} {{tabel.year}} {{tabel.status}}</h1>
+
 <!-- spinner loading page end --->
   <table class="admin_table">
     <thead>
@@ -210,14 +212,14 @@
   </table> {% endcomment %}
 
   {% if perms.tabel.add_timetrackingtabel %}
-  <form style="width: 10%;" method="post" action="/tabel_admin?tabel_pk={{tabel_pk}}" name='soglasovat' onsubmit="return confirmSubmit();">
+  <form style="width: 10%;" method="post" action="/tabel_admin?tabel_pk={{tabel_pk}}" name='soglasovat'>
     {% csrf_token %}
     <input type="hidden" name="tabel_pk" value="{{ tabel_pk }}">
     <input type="hidden" id="base64ToSign" name="base64ToSign" value="{{ json_base64 }}">
 
-    <input type="submit" value="Утвердить" name="approve_graph" class="default">
+    {% comment %} <input type="submit" value="Утвердить" name="approve_graph" class="default"> {% endcomment %}
     <input style="display:none"type="checkbox" id="flagForBase64" />
-    <input value="Получить данные ключа" onclick="getKeyInfoCall();" type="button" class="mb-3" />	
+    <input value="Утвердить" onclick="createCAdESFromBase64Call();" type="button" class="mb-3" />			
   </form>
   {% endif %}
 
@@ -240,6 +242,7 @@
     <input type="button" value="Назад" class="default">
   </a>
   </div>
+
   <script>
     function confirmSubmit() {
       // Confirm submission
@@ -259,7 +262,7 @@
         // Perform AJAX request
         $.ajax({
           type: 'POST',
-          url: '{% url "graph:graph_admin" %}?{{ graph_pk }}',
+          url: '{% url "tabel:tabel_admin" %}?{{ graph_pk }}',
           success: function(response) {
             // Hide spinner and show data after successful response
             spinnerBox.style.display = 'none';
@@ -277,7 +280,6 @@
       return userConfirmed;
     }
   </script>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 <script>
 
 const spinnerBox = document.getElementById('spinner-box')

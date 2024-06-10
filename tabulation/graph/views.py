@@ -1,3 +1,4 @@
+import base64
 import calendar
 import json
 import logging
@@ -223,15 +224,17 @@ def graph_admin(request):
         if 'approve_graph' in request.POST:
             pass
         if request.headers["content-type"].strip().startswith("application/json"):
-            if 'subjectDn' in request.body.decode('utf-8'):
+            if 'cms' in request.body.decode('utf-8'):
                 data = json.loads(request.body)
-                
-                subject_dn = data.get('subjectDn')
+                cms = data.get('cms')
                 iin = None
                 users_iin = request.user.iin
                 # print("users: ",users_iin)
-                if subject_dn:
-                    match = re.search(r'IIN(\d{12})', subject_dn)
+                if cms:
+                    encode = base64.b64decode(cms).decode("utf-8", "ignore")
+                    # print(encode)
+                    match = re.search(r'IIN(\d{12})', encode)
+                    # print('match: ',match)
                     if match:
                         iin = match.group(1)
                         # print(iin)
@@ -241,6 +244,7 @@ def graph_admin(request):
                             graph_pk = request.session['chosen_pk']
                             # print(graph_pk)
                             graph_inst = Graph.objects.get(pk=graph_pk)
+                            print(graph_inst)
                             # print(graph_inst)
                             employees_graph = graph_inst.employees.all()
                             tracking = TimeTracking.objects.filter(date__year=int(graph_inst.year), date__month=int(graph_inst.month),graph_id=graph_inst).select_related('employee_id')
@@ -295,30 +299,31 @@ def graph_admin(request):
                                 tabel_instance.employees.set(employees_graph)
                                 # print(iin)
                                 graph_inst.status = 'Согласованный'
-                                graph_inst.save()
+                                
+                                json_base64 = graph_to_json(request,graph_pk)
+                                graph_inst.graph_json = json_base64
                                 
 
-                                # return redirect('admin:tabel_tabel_changelist')
-                                # return JsonResponse({'exists': False})
+                                graph_inst.cms = cms
+                                graph_inst.save()
+                                # print('graph status ',graph_inst.status)
+                                messages.success(request,'График успешно согласован')
+                                return redirect('admin:tabel_tabel_changelist')
+                                
+
+
                                 
 
                         else:
                             messages.error(request,'Вы не можете согласовать график')
                             print('net')
                     # print("IIN: ",iin)
-            if 'cms' in request.body.decode('utf-8'):
-                data = json.loads(request.body)
-                cms = data.get('cms')
-                graph_pk = request.session['chosen_pk']
-                graph_inst = Graph.objects.get(pk=graph_pk)
-                json_base64 = graph_to_json(request,graph_pk)
-                graph_inst.graph_json = json_base64
+            # if 'cms' in request.body.decode('utf-8'):
+            #     data = json.loads(request.body)
+            #     cms = data.get('cms')
+            #     graph_pk = request.session['chosen_pk']
+            #     graph_inst = Graph.objects.get(pk=graph_pk)
                 
-
-                graph_inst.cms = cms
-                graph_inst.save()
-                messages.success(request,'CMS успешно добавлен')
-                return redirect('graph:graph_admin')
     #
 
     
@@ -469,7 +474,6 @@ def graph_admin_update(request):
         TimeTracking.objects.bulk_update(tracking, ['worked_hours'])
 
 
-        # print(time_tracking_dict)
         # print(time_tracking_dict)
         return redirect(reverse('graph:graph_admin') +f'?graph_pk={graph_pk}')
     

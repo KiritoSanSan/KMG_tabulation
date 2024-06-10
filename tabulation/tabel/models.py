@@ -29,7 +29,6 @@ class Tabel(models.Model):
     employees = models.ManyToManyField('graph.Employees',through="TabelEmployeesList",related_name='tabel_employee',verbose_name='Работники')
     status = models.CharField(default='Не утвержден',max_length=20,verbose_name='Статус')
     tabel_json = models.TextField(verbose_name='base64 json Табеля',null=True)
-    
     cms = models.TextField(verbose_name='cms Табеля',null=True)
     class Meta:
         verbose_name = 'Согласованный Табель'

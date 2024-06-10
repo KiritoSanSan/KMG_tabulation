@@ -41,7 +41,7 @@ def tabel_admin(request):
         request.session['chosen_pk'] = tabel_pk
 
     
-
+    json_base64 = None
     tabel_pk = request.session['chosen_pk']
     tabel = Tabel.objects.get(pk=tabel_pk)
     employees = tabel.employees.all()
@@ -107,80 +107,88 @@ def tabel_admin(request):
                 time_tracking_dict[int(employee_id)][day_index] = work.worked_hours
         
     if request.method == 'POST':
+        if 'not_sogl' in request.POST:
+            messages.error(request, 'График уже согласован и не может быть изменен')
         if 'approve_graph' in request.POST:
             pass
-        if request.header['content-type'].strip().startwith('application/json'):
-            if 'subjectDn' in request.body.decode('utf-8'):
-                data = json.loads(request.body)
-                subject_dn = data.get('subjectDn')
-                iin = None
-                user_iin = request.user.iin
-                match = re.search(r'IIN(\d{12})', subject_dn)
-                if match:
-                    iin = match.group(1)
-                    if iin == user_iin:
-                        tabel_pk = request.POST.get('tabel_pk')
-                        tabel_inst = Tabel.objects.get(pk=tabel_pk)
-                        employees_graph = tabel_inst.employees.all()
-                        tabel_instance = None
-                        try:
-                            tabel_instance = TabelApproved.objects.get(
-                                reservoir=tabel_inst.reservoir,
-                                subdivision=tabel_inst.subdivision,
-                                month=tabel_inst.month,
-                                year=tabel_inst.year,
-                            )
-                            if tabel_instance:
-                                messages.error(request,'Табель уже утвержден')
-                        except ObjectDoesNotExist:
-                            tabel_instance = TabelApproved.objects.create(
-                                reservoir=tabel_inst.reservoir,
-                                subdivision=tabel_inst.subdivision,
-                                month=tabel_inst.month,
-                                year=tabel_inst.year,
-                            )
-                            time_tracking_dict_tabel = {}
-                            for employee in employees_graph:
-                                list = []
-                                for day in days:
-                                    list.append(0)
-                                time_tracking_dict_tabel[int(f'{employee.tabel_number}')] = list
-                            for employee in employees_graph:
-                                for work in tracking:
-                                    if work.employee_id == employee:
-                                        employee_id = work.employee_id.tabel_number
-                                        day_index = days.index(work.date.day)
-                                        time_tracking_dict_tabel[int(employee_id)][day_index] = work.worked_hours
-                            time_tracking_tabel_instances = []
-                            for employee_id, values in time_tracking_dict_tabel.items():
-                                for day_index, worked_hours in enumerate(values):
-                                    time_tracking_tabel_instances.append(TabelApprovedTimeTracking(
-                                        employee_id=Employees.objects.get(tabel_number=employee_id),
-                                        date=datetime(int(tabel_instance.year), int(tabel_instance.month), days[day_index]),
-                                        worked_hours=worked_hours,
-                                        tabel_approved_id = tabel_instance,
-                                    ))
-                            # print(time_tracking_tabel_instances)
-                            TabelApprovedTimeTracking.objects.bulk_create(time_tracking_tabel_instances)
-                            tabel_instance.employees.set(employees_graph)
-                            tabel_inst.status = 'Утвержден'
-                            tabel_inst.save()
-                            
-                            # messages.success(request,'Табель утвержден')
-                            # return redirect(reverse('admin:tabel_tabelapproved_changelist'))
-                    else:
-                        messages.error(request,'Вы не можете согласовать график')
+        if request.headers["content-type"].strip().startswith("application/json"):
             if 'cms' in request.body.decode('utf-8'):
                 data = json.loads(request.body)
                 cms = data.get('cms')
-                tabel_pk = request.session['chosen_pk']
-                tabel_inst = Tabel.objects.get(pk=tabel_pk)
-                json_base64 = tabel_to_json(request,tabel_pk)
-                tabel_inst.tabel_json = json_base64
-                tabel_inst.cms = cms
-                tabel_inst.save()
-                messages.success(request,'Табель успешно утвержден')
-                return redirect('admin:tabel_tabelapproved_changelist')
+                iin = None
+                encode = base64.b64decode(cms).decode("utf-8", "ignore")
+                user_iin = request.user.iin
+
+                match = re.search(r'IIN(\d{12})', encode)
+                if cms:
+                    if match:
+                        iin = match.group(1)
+                        if iin == user_iin:
+
+                            tabel_pk = request.session['chosen_pk']
+                            # tabel_pk = request.GET['tabel_pk']
+                            tabel_inst = Tabel.objects.get(pk=tabel_pk)
+                            # print(tabel_inst)
+                            tracking = TimeTrackingTabel.objects.filter(date__year=int(tabel_inst.year), date__month=int(tabel_inst.month),tabel_id=tabel_inst).select_related('employee_id')
+
+                            employees_graph = tabel_inst.employees.all()
+                            tabel_instance = None
+                            try:
+                                tabel_instance = TabelApproved.objects.get(
+                                    reservoir=tabel_inst.reservoir,
+                                    subdivision=tabel_inst.subdivision,
+                                    month=tabel_inst.month,
+                                    year=tabel_inst.year,
+                                )
+                                if tabel_instance:
+                                    messages.error(request,'Табель уже утвержден')
+                            except ObjectDoesNotExist:
+                                tabel_instance = TabelApproved.objects.create(
+                                    reservoir=tabel_inst.reservoir,
+                                    subdivision=tabel_inst.subdivision,
+                                    month=tabel_inst.month,
+                                    year=tabel_inst.year,
+                                )
+                                time_tracking_dict_tabel = {}
+                                for employee in employees_graph:
+                                    list = []
+                                    for day in days:
+                                        list.append(0)
+                                    time_tracking_dict_tabel[int(f'{employee.tabel_number}')] = list
+                                for employee in employees_graph:
+                                    for work in tracking:
+                                        if work.employee_id == employee:
+                                            employee_id = work.employee_id.tabel_number
+                                            day_index = days.index(work.date.day)
+                                            time_tracking_dict_tabel[int(employee_id)][day_index] = work.worked_hours
+                                time_tracking_tabel_instances = []
+                                for employee_id, values in time_tracking_dict_tabel.items():
+                                    for day_index, worked_hours in enumerate(values):
+                                        time_tracking_tabel_instances.append(TabelApprovedTimeTracking(
+                                            employee_id=Employees.objects.get(tabel_number=employee_id),
+                                            date=datetime(int(tabel_instance.year), int(tabel_instance.month), days[day_index]),
+                                            worked_hours=worked_hours,
+                                            tabel_approved_id = tabel_instance,
+                                        ))
+                                # print(time_tracking_tabel_instances)
+                                TabelApprovedTimeTracking.objects.bulk_create(time_tracking_tabel_instances)
+                                tabel_instance.employees.set(employees_graph)
+                                print(tabel_inst)
+                                tabel_instance.status = 'Утвержден'
+                                json_base64 = tabel_to_json(request,tabel_pk)
+                                tabel_inst.tabel_json = json_base64
+                                tabel_inst.cms = cms
+                                tabel_inst.save()
+                                messages.success(request,'Табель успешно утвержден')
+                                return redirect('admin:tabel_tabelapproved_changelist')
+                        else:
+                            messages.error(request,'Вы не утвердить табель')
+            # if 'cms' in request.body.decode('utf-8'):
+            #     data = json.loads(request.body)
+            #     cms = data.get('cms')
+            #     tabel_pk = request.session['chosen_pk']
+            #     tabel_inst = Tabel.objects.get(pk=tabel_pk)
+
     context = {
         'tabel_pk':tabel_pk,
         "year":year,
@@ -194,6 +202,7 @@ def tabel_admin(request):
         'tabel':tabel,
         'calculations': directory,
         'time_tracking_dict': time_tracking_dict,
+        "json_base64":json_base64
 
     }
     context.update(sidebar(request))

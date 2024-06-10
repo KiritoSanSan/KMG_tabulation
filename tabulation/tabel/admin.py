@@ -44,6 +44,7 @@ class AdminTabel(admin.ModelAdmin):
     list_filter = ('reservoir',
                    'year',
                    'subdivision')
+    readonly_fields = ('status','tabel_json','cms')
     
     def view_tabel_link(self,obj):
          tabel = obj.pk
